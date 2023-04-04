@@ -1,0 +1,18 @@
+﻿@{
+    ViewData["Title"] = "Reports";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<p>Select a report from the list below:</p>
+
+<div class="list-group">
+    <a href="@Url.Action("TransactionsReport", "Reports")" class="list-group-item list-group-item-action">Transactions Report</a>
+    <a href="@Url.Action("IncomeVsExpense", "Reports")" class="list-group-item list-group-item-action">Income vs Expense</a>
+    <a href="@Url.Action("CategoryBreakdown", "Reports")" class="list-group-item list-group-item-action">Category Breakdown</a>
+    <a href="@Url.Action("MonthlyBudget", "Reports")" class="list-group-item list-group-item-action">Monthly Budget</a>
+    <a href="@Url.Action("SavingsProgress", "Reports")" class="list-group-item list-group-item-action">Savings Progress</a>
+    <a href="@Url.Action("NetWorthReport", "Reports")" class="list-group-item list-group-item-action">Net Worth Report</a>
+    <a href="@Url.Action("DebtPayoff", "Reports")" class="list-group-item list-group-item-action">Debt Payoff</a>
+    <a href="@Url.Action("Custom ", "Reports")" class="list-group-item list-group-item-action">Custom </a>
+</div>

@@ -1,0 +1,22 @@
+﻿@model FinanceApp.Models.ViewModels.IncomeVsExpenseViewModel
+
+<h2>Income vs Expense</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h4 class="card-title">Total Income</h4>
+                <p class="card-text">@Model.TotalIncome.ToString("C")</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h4 class="card-title">Total Expenses</h4>
+                <p class="card-text">@Model.TotalExpenses.ToString("C")</p>
+            </div>
+        </div>
+    </div>
+</div>

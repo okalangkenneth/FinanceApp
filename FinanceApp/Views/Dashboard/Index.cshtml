@@ -1,0 +1,207 @@
+﻿@model FinanceApp.Models.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+
+<h2>@ViewData["Title"]</h2>
+
+<h6>Account Summary</h6>
+
+<div class="container">
+    <div class="container">
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-header">Total Income</div>
+                    <div class="card-body">
+                        <h4 class="card-title">@ViewBag.Income.ToString("C")</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-danger mb-3">
+                    <div class="card-header">Total Expenses</div>
+                    <div class="card-body">
+                        <h4 class="card-title">@ViewBag.Expenses.ToString("C")</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-header">Balance</div>
+                    <div class="card-body">
+                        <h4 class="card-title">@ViewBag.Balance.ToString("C")</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Recent Transactions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    Recent Transactions
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transaction in Model.Transactions)
+                            {
+                                <tr>
+                                    <td>@transaction.Date.ToShortDateString()</td>
+                                    <td>@transaction.Type</td>
+                                    <td>@transaction.Category</td>
+                                    <td>@transaction.Description</td>
+                                    <td>@transaction.Amount.ToString("C")</td>
+                                </tr>
+                            }
+
+                        </tbody>
+                    </table>
+                    <a href="/Transactions" class="btn btn-primary">View All Transactions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Financial Goals -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    Financial Goals
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var goal in Model.FinancialGoals)
+                        {
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h5 class="card-title">@goal.Title</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">Description: @goal.Description</p>
+                                        <p class="card-text">Target Amount: @goal.TargetAmount.ToString("C")</p>
+                                        <p class="card-text">Current Amount: @goal.CurrentAmount.ToString("C")</p>
+                                        <p class="card-text">Start Date: @goal.StartDate.ToShortDateString()</p>
+                                        <p class="card-text">End Date: @goal.EndDate.ToShortDateString()</p>
+                                        <p class="card-text">Progress: @((goal.CurrentAmount / goal.TargetAmount) * 100)%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <a href="/FinancialGoals" class="btn btn-primary">View All Financial Goals</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Spending Analysis -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    Spending Analysis
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <ul class="list-group">
+                                @foreach (var sa in Model.SpendingAnalysis)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        @sa.Category
+                                        <span class="badge badge-primary badge-pill">@sa.Amount.ToString("C")</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="chart-container d-flex justify-content-center align-items-center" style="width: 100%; height: 400px;">
+                                <canvas id="spendingAnalysisChart" width="400" height="400"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <!-- AI-Generated Recommendations -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    AI-Generated Recommendations
+                </div>
+                <div class="card-body">
+                    <!-- Display AI-generated recommendations here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Navigation -->
+            <div class="d-flex justify-content-between mb-4">
+                <div class="w-100" style="margin-bottom: 30px;">
+                    <a href="/Transactions/Create" class="btn btn-primary w-100 mr-2" style="max-width: 31%;">Add Transaction</a>
+                    <a href="/FinancialGoals/Create" class="btn btn-primary w-100 mx-2" style="max-width: 31%;">Add Financial Goal</a>
+                    <a href="/Reports" class="btn btn-primary w-100 ml-2" style="max-width: 31%;">View Reports</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Fetch the canvas element
+            var ctx = document.getElementById("spendingAnalysisChart").getContext("2d");
+
+            @{
+                var colors = new List<string> { "#ff6384", "#36a2eb", "#cc65fe", "#ffce56", "#20c997", "#4bc0c0", "#c45850", "#e8c3b9", "#8e5ea2", "#3cba9f", "#2ecc71", "#9b59b6","#34495e","#f1c40f","#e74c3c"};
+
+                var categories = Model.SpendingAnalysis.Select(sa => sa.Category).ToArray();
+                var categoryColors = new Dictionary<string, string>();
+
+                for (int i = 0; i < categories.Length; i++)
+                {
+                    categoryColors[categories[i]] = colors[i % colors.Count];
+                }
+            }
+
+            // Define chart data
+            var data = {
+                labels: @Html.Raw(Json.Serialize(categories)),
+                datasets: [{
+                    label: "Spending Analysis",
+                    backgroundColor: @Html.Raw(Json.Serialize(categories.Select(c => categoryColors[c]).ToArray())),
+                    data: @Html.Raw(Json.Serialize(Model.SpendingAnalysis.Select(cs => cs.Amount).ToArray()))
+                }]
+            };
+
+            // Render the chart
+            var myPieChart = new Chart(ctx, {
+                type: "pie",
+                data: data
+            });
+        });
+    </script>
+}
+
+
+
+

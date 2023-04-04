@@ -1,0 +1,55 @@
+﻿@model IEnumerable<FinanceApp.Models.FinancialGoal>
+@using FinanceApp.Helpers
+
+
+@{
+    ViewData["Title"] = "Financial Goals";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<!-- Rest of the code -->
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add New Goal</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Target Amount</th>
+            <th>Current Amount</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+        <tr>
+            <td>@item.Title</td>
+            <td>@item.Description</td>
+            <td>@CurrencyHelper.FormatAmount(item.CurrentAmount, item.Currency.ToString())</td>
+            <td>@CurrencyHelper.FormatAmount(item.TargetAmount, item.Currency.ToString())</td>
+            <td>@item.StartDate.ToShortDateString()</td>
+            <td>@item.EndDate.ToShortDateString()</td>
+            <td>@item.Status</td>
+            <td>
+                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger">Delete</a>
+                <a href="@Url.Action("UpdateFinancialGoal", "FinancialGoals", new { id = item.Id })" class="btn btn-primary">Update</a>
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+

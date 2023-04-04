@@ -1,0 +1,25 @@
+﻿@model FinanceApp.Models.ViewModels.MonthlyBudgetViewModel
+
+<h2>Monthly Budget</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Year</th>
+            <th>Month</th>
+            <th>Income</th>
+            <th>Expenses</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.MonthlyTotals)
+        {
+            <tr>
+                <td>@item.Year</td>
+                <td>@item.Month</td>
+                <td>@item.Income.ToString("C")</td>
+                <td>@item.Expenses.ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>
