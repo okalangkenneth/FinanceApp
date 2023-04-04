@@ -1,0 +1,81 @@
+﻿@model FinanceApp.Models.ViewModels.TransactionsReportViewModel
+@using FinanceApp.Helpers
+
+@{
+    ViewData["Title"] = "Transactions Report";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div style="margin-bottom: 20px;">
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate" name="startDate" />
+
+    <label for="endDate" style="margin-left: 10px;">End Date:</label>
+    <input type="date" id="endDate" name="endDate" />
+
+    <button id="filterBtn" style="margin-left: 10px;">Filter</button>
+</div>
+
+<table class="table" id="transactionsTable">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Category</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var transaction in Model.Transactions)
+        {
+        <tr>
+            <td data-date="@transaction.Date.ToString("yyyy-MM-dd")">@transaction.Date.ToShortDateString()</td>
+            <td>@transaction.Description</td>
+            <td>@transaction.Amount.ToString("C")</td>
+            <td>@transaction.Type</td>
+            <td>@transaction.Category</td>
+            <td>@CurrencyHelper.FormatAmount(transaction.Amount, Model.PreferredCurrency)</td>
+
+        </tr>
+        }
+    </tbody>
+</table>
+
+<div style="margin-top: 20px;">
+    <div class="d-flex justify-content-around mb-4">
+        <div class="container px-5" style="margin-bottom: 30px;">
+            <a href="@Url.Action("ExportTransactionsReportExcel", "Export")" class="btn btn-primary">Export to Excel</a>
+            <a href="@Url.Action("ExportTransactionsReportPdf", "Export")" class="btn btn-primary">Export to PDF</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $("#filterBtn").on("click", function () {
+            let startDate = $("#startDate").val();
+            let endDate = $("#endDate").val();
+
+            $("#transactionsTable tbody tr").each(function () {
+                let rowDate = new Date($(this).find("td[data-date]").data("date"));
+
+                if (startDate && endDate) {
+                    let start = new Date(startDate);
+                    let end = new Date(endDate);
+                    if (rowDate >= start && rowDate <= end) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                } else {
+                    $(this).show();
+                }
+            });
+        });
+    </script>
+}
+
+
+

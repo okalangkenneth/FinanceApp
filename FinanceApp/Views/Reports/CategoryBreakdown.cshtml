@@ -1,0 +1,22 @@
+﻿@model FinanceApp.Models.ViewModels.CategoryBreakdownViewModel
+
+<h2>Category Breakdown</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.CategoryTotals)
+        {
+            <tr>
+                <td>@item.Category</td>
+                <td>@item.Total.ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
