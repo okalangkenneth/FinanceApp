@@ -21,6 +21,9 @@ These instructions will help you get a copy of the project up and running on you
 git clone https://github.com/yourusername/FinTrak.git
 ````
 2- Open the FinTrak.sln file in Visual Studio or your preferred IDE.
+
 3- Restore NuGet packages and build the solution.
+
 4- Update the appsettings.json file with your OpenAI API key and any other necessary configuration settings.
+
 5- Run the application using the development web server (e.g., IIS Express in Visual Studio).
