@@ -30,6 +30,8 @@ namespace FinanceApp
 
         public IConfiguration Configuration { get; }
 
+
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -70,6 +72,7 @@ namespace FinanceApp
             services.AddHttpClient<OpenAIService>();
             services.AddSingleton(x => new OpenAIService(x.GetRequiredService<HttpClient>(), Configuration["OpenAI:ApiKey"], x.GetRequiredService<ILogger<OpenAIService>>()));
 
+            
 
 
 
