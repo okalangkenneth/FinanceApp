@@ -10,3 +10,9 @@ With an intuitive dashboard and user-friendly interface, FinTrak makes managing 
 - Spending Analysis: Visualize your spending habits by category with an interactive pie chart.
 - AI-Generated Recommendations: Receive personalized recommendations based on your spending habits, powered by OpenAI's GPT-4 model. (Note: This feature requires an active OpenAI API key with available credit.)
 - Reports: Generate financial reports to gain insights into your financial health and progress towards your goals.
+
+## Getting Started
+
+These instructions will help you get a copy of the project up and running on your local machine for development and testing purposes.
+
+## Installation
