@@ -12,7 +12,6 @@ With an intuitive dashboard and user-friendly interface, FinTrak makes managing 
 - Reports: Generate financial reports to gain insights into your financial health and progress towards your goals.
 
 ## Getting Started
-
 These instructions will help you get a copy of the project up and running on your local machine for development and testing purposes.
 
 ## Installation
