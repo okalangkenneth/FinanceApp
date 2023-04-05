@@ -39,7 +39,8 @@ namespace FinanceApp.Models
         USD, // US Dollar
         GBP, // British Pound
         EUR, // Euro
-             // Add other currencies as needed
+        SEK, // Swedish Kronor
+        // Add other currencies as needed
     }
 
 }
