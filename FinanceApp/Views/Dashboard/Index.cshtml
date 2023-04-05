@@ -74,39 +74,44 @@
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-12">
-            <!-- Financial Goals -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    Financial Goals
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        @foreach (var goal in Model.FinancialGoals)
-                        {
-                            <div class="col-md-6">
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h5 class="card-title">@goal.Title</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="card-text">Description: @goal.Description</p>
-                                        <p class="card-text">Target Amount: @goal.TargetAmount.ToString("C")</p>
-                                        <p class="card-text">Current Amount: @goal.CurrentAmount.ToString("C")</p>
-                                        <p class="card-text">Start Date: @goal.StartDate.ToShortDateString()</p>
-                                        <p class="card-text">End Date: @goal.EndDate.ToShortDateString()</p>
-                                        <p class="card-text">Progress: @((goal.CurrentAmount / goal.TargetAmount) * 100)%</p>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                    <a href="/FinancialGoals" class="btn btn-primary">View All Financial Goals</a>
-                </div>
-            </div>
+
+    <!-- Financial goals -->
+    <div class="card mb-4">
+        <div class="card-header">
+            Financial Goals
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Target Amount</th>
+                        <th>Current Amount</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var goal in Model.FinancialGoals)
+                    {
+                        <tr>
+                            <td>@goal.Title</td>
+                            <td>@goal.Description</td>
+                            <td>@goal.TargetAmount.ToString("C")</td>
+                            <td>@goal.CurrentAmount.ToString("C")</td>
+                            <td>@goal.StartDate.ToShortDateString()</td>
+                            <td>@goal.EndDate.ToShortDateString()</td>
+                            <td>@((goal.CurrentAmount / goal.TargetAmount) * 100)%</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <a href="/FinancialGoals" class="btn btn-primary">View All Financial Goals</a>
         </div>
     </div>
+
     <div class="row">
         <div class="col-md-12">
             <!-- Spending Analysis -->
@@ -138,19 +143,19 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <!-- AI-Generated Recommendations -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    AI-Generated Recommendations
-                </div>
-                <div class="card-body">
-                    <!-- Display AI-generated recommendations here -->
-                </div>
+    <!--<div class="row">
+        <div class="col-md-12">-->
+    <!-- AI-Generated Recommendations -->
+    <!--<div class="card mb-4">
+        <div class="card-header">
+            AI-Generated Recommendations
+        </div>
+        <div class="card-body">-->
+    <!-- Display AI-generated recommendations here -->
+    <!--</div>
             </div>
         </div>
-    </div>
+    </div>-->
     <div class="row">
         <div class="col-md-12">
             <!-- Navigation -->
