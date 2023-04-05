@@ -1,0 +1,12 @@
+﻿@{
+    ViewData["Title"] = "Spending Analysis";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<p>Here are some insights into your financial behavior:</p>
+
+<pre>@ViewBag.AnalysisResult</pre>
+
+<a asp-controller="Home" asp-action="Index" class="btn btn-primary">Back to Home</a>
+

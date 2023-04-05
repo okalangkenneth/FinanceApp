@@ -2,6 +2,7 @@ using DinkToPdf;
 using DinkToPdf.Contracts;
 using FinanceApp.Data;
 using FinanceApp.Models;
+using FinanceApp.Services;
 using FinanceApp.Services.IEmailService;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -11,8 +12,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 
@@ -63,6 +66,11 @@ namespace FinanceApp
 
             string sendGridApiKey = Configuration["SendGrid:ApiKey"];
             services.AddSingleton<IEmailService>(new SendGridEmailService(sendGridApiKey));
+
+            services.AddHttpClient<OpenAIService>();
+            services.AddSingleton(x => new OpenAIService(x.GetRequiredService<HttpClient>(), Configuration["OpenAI:ApiKey"], x.GetRequiredService<ILogger<OpenAIService>>()));
+
+
 
 
             services.AddAuthorization();
