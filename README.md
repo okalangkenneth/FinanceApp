@@ -27,3 +27,7 @@ git clone https://github.com/yourusername/FinTrak.git
 4- Update the appsettings.json file with your OpenAI API key and any other necessary configuration settings.
 
 5- Run the application using the development web server (e.g., IIS Express in Visual Studio).
+
+## Deployment
+Refer to the Azure deployment guide for instructions on how to deploy the application to Azure App Service. You can also set up continuous integration and continuous deployment (CI/CD) using GitHub Actions or Azure DevOps.
+
