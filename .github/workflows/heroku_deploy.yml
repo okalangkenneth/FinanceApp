@@ -3,7 +3,7 @@ name: Deploy to Heroku
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
@@ -16,13 +16,13 @@ jobs:
     - name: Log in to Heroku Container Registry
       run: heroku container:login
       env:
-        HEROKU_API_KEY: ${{ 826f9abf-dce8-4d78-8709-f7f6b3ea73d6 }}
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 
     - name: Deploy to Heroku
       run: |
-        heroku container:push web --app <fin-trak>
-        heroku container:release web --app <fin-trak>
+        heroku container:push web --app fin-trak
+        heroku container:release web --app fin-trak
       env:
-       HEROKU_API_KEY: ${{ 826f9abf-dce8-4d78-8709-f7f6b3ea73d6 }}
+       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 
        
