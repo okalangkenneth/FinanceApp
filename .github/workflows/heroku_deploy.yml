@@ -1,0 +1,28 @@
+name: Deploy to Heroku
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Log in to Heroku Container Registry
+      run: heroku container:login
+      env:
+        HEROKU_API_KEY: ${{ 826f9abf-dce8-4d78-8709-f7f6b3ea73d6 }}
+
+    - name: Deploy to Heroku
+      run: |
+        heroku container:push web --app <fin-trak>
+        heroku container:release web --app <fin-trak>
+      env:
+       HEROKU_API_KEY: ${{ 826f9abf-dce8-4d78-8709-f7f6b3ea73d6 }}
+
+       
