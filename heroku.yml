@@ -1,0 +1,3 @@
+build:
+  config:
+    ASPNETCORE_ENVIRONMENT: Production
