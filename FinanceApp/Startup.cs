@@ -23,21 +23,35 @@ namespace FinanceApp
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public IConfiguration Configuration { get; }
+        public IWebHostEnvironment Environment { get; }
+
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
+            Environment = environment;
         }
-
-        public IConfiguration Configuration { get; }
 
 
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services, IWebHostEnvironment env)
+        public void ConfigureServices(IServiceCollection services)
         {
+
+            string connectionString;
+
+            if (Environment.IsDevelopment())
+            {
+                connectionString = Configuration.GetConnectionString("DefaultConnection");
+            }
+            else
+            {
+                connectionString = Configuration.GetValue<string>("HerokuConnection");
+            }
+
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(
-                    Configuration.GetConnectionString(env.IsProduction() ? "HerokuConnection" : "DefaultConnection")));
+                options.UseNpgsql(connectionString));
+
             services.AddDatabaseDeveloperPageExceptionFilter();
 
             services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -132,7 +146,7 @@ namespace FinanceApp
             });
 
             // Seed dummy data
-           SeedData.Seed(dbContext);
+          // SeedData.Seed(dbContext);
         }
 
     }
