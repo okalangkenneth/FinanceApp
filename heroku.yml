@@ -1,6 +1,7 @@
+@"
 build:
   config:
     ASPNETCORE_ENVIRONMENT: Production
 run:
   web: dotnet FinanceApp.dll
-
+"@ | Set-Content heroku.yml
