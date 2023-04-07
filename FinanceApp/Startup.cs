@@ -40,14 +40,7 @@ namespace FinanceApp
 
             string connectionString;
 
-            if (Environment.IsDevelopment())
-            {
-                connectionString = Configuration.GetConnectionString("DefaultConnection");
-            }
-            else
-            {
-                connectionString = Configuration.GetValue<string>("HerokuConnection");
-            }
+            connectionString = Configuration.GetConnectionString(Environment.IsDevelopment() ? "DefaultConnection" : "HerokuConnection");
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));

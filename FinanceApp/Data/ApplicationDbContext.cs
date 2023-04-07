@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using FinanceApp.Models;
 
+
+
 namespace FinanceApp.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
@@ -18,6 +20,19 @@ namespace FinanceApp.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configure PostgreSQL data types
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                // Replace 'nvarchar' with 'text' data type for PostgreSQL
+                foreach (var property in entityType.GetProperties())
+                {
+                    if (property.ClrType == typeof(string))
+                    {
+                        property.SetColumnType("text");
+                    }
+                }
+            }
+
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.ApplicationUser)
                 .WithMany()
@@ -30,5 +45,6 @@ namespace FinanceApp.Data
                 .HasForeignKey(g => g.UserId)
                 .IsRequired();
         }
+
     }
 }
