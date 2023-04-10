@@ -1,6 +1,11 @@
+
 build:
-  config:
-    ASPNETCORE_ENVIRONMENT: Production
+  docker:
+    web: Dockerfile
 run:
-  web: dotnet FinanceApp.dll
+  web: bundle exec puma -C config/puma.rb
+  worker:
+    command:
+      - python myworker.py
+    image: web
 

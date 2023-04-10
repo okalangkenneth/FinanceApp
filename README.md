@@ -29,7 +29,7 @@ git clone https://github.com/yourusername/FinTrak.git
 5- Run the application using the development web server (e.g., IIS Express in Visual Studio).
 
 ## Deployment
-Refer to the [Azure deployment guide](https://azure.microsoft.com/en-us/resources/whitepapers/developer-guide-to-azure/) for instructions on how to deploy the application to Azure App Service. You can also set up continuous integration and continuous deployment (CI/CD) using [GitHub Actions](https://docs.github.com/en/actions) or [Azure DevOps](https://learn.microsoft.com/en-us/azure/devops/?view=azure-devops).
+Refer to the [Azure deployment guide](https://azure.microsoft.com/en-us/resources/whitepapers/developer-guide-to-azure/) for instructions on how to deploy the application to Azure App Service. You can also set up continuous integration and continuous deployment (CI/CD) using [GitHub Actions](https://docs.github.com/en/actions) or [Azure DevOps](https://learn.microsoft.com/en-us/azure/devops/?view=azure-devops) and deploy to Heroku in the case of the former.
 
 ## Contributing
 If you'd like to contribute to FinTrak, feel free to fork the repository, create a feature branch, and submit a pull request. Please ensure that your code adheres to the existing style and structure.
