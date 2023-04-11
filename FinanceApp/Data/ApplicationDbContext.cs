@@ -18,6 +18,28 @@ namespace FinanceApp.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Get the current database provider
+            var provider = this.Database.ProviderName;
+
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    if (property.ClrType == typeof(string))
+                    {
+                        // Apply data type based on the provider
+                        if (provider == "Microsoft.EntityFrameworkCore.SqlServer")
+                        {
+                            property.SetColumnType("nvarchar(MAX)");
+                        }
+                        else if (provider == "Npgsql.EntityFrameworkCore.PostgreSQL")
+                        {
+                            property.SetColumnType("text");
+                        }
+                    }
+                }
+            }
+
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.ApplicationUser)
                 .WithMany()
@@ -32,3 +54,4 @@ namespace FinanceApp.Data
         }
     }
 }
+

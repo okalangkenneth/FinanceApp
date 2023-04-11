@@ -1,38 +1,12 @@
 {
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-    }
-  },
   "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
     "FinanceApp": {
       "commandName": "Project",
       "launchBrowser": true,
+      "applicationUrl": "http://localhost:10000",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "dotnetRunMessages": "true",
-      "applicationUrl": "https://localhost:5001;http://localhost:5000"
-    },
-    "Docker": {
-      "commandName": "Docker",
-      "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
-      "environmentVariables": {
-        "Key": "Value",
-        "OpenAI": "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",
-        "SendGrid": "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"
-      },
-      "publishAllPorts": true,
-      "useSSL": true
+      }
     }
   }
 }
