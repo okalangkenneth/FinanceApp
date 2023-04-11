@@ -38,12 +38,21 @@ namespace FinanceApp
         public void ConfigureServices(IServiceCollection services)
         {
 
-            string connectionString;
+            
+            
+                services.AddDbContext<ApplicationDbContext>(options =>
+                {
+                    if (Environment.IsDevelopment())
+                    {
+                        options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+                    }
+                    else
+                    {
+                        options.UseNpgsql(Configuration.GetConnectionString("HerokuConnection"));
+                    }
+                });
 
-            connectionString = Configuration.GetConnectionString(Environment.IsDevelopment() ? "DefaultConnection" : "HerokuConnection");
-
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(connectionString));
+            
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
