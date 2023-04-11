@@ -69,7 +69,7 @@ namespace FinanceApp
 
             services.AddRazorPages();
 
-            services.Configure<CookieAuthenticationOptions>(options =>
+            services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = "/Account/Login";
                 options.LogoutPath = "/Account/Logout";
