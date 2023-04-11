@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinanceApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230407143058_InitialCreateToHeroku")]
-    partial class InitialCreateToHeroku
+    [Migration("20230411094536_FixColumnType")]
+    partial class FixColumnType
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
