@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace FinanceApp.Migrations
 {
-    public partial class InitialCreateToHeroku : Migration
+    public partial class FixColumnType : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
