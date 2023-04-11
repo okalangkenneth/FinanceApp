@@ -2,8 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using FinanceApp.Models;
 
-
-
 namespace FinanceApp.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
@@ -20,15 +18,24 @@ namespace FinanceApp.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure PostgreSQL data types
+            // Get the current database provider
+            var provider = this.Database.ProviderName;
+
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
-                // Replace 'nvarchar' with 'text' data type for PostgreSQL
                 foreach (var property in entityType.GetProperties())
                 {
                     if (property.ClrType == typeof(string))
                     {
-                        property.SetColumnType("text");
+                        // Apply data type based on the provider
+                        if (provider == "Microsoft.EntityFrameworkCore.SqlServer")
+                        {
+                            property.SetColumnType("nvarchar(MAX)");
+                        }
+                        else if (provider == "Npgsql.EntityFrameworkCore.PostgreSQL")
+                        {
+                            property.SetColumnType("text");
+                        }
                     }
                 }
             }
@@ -45,6 +52,6 @@ namespace FinanceApp.Data
                 .HasForeignKey(g => g.UserId)
                 .IsRequired();
         }
-
     }
 }
+
