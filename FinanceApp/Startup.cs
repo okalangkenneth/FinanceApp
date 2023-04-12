@@ -6,6 +6,7 @@ using FinanceApp.Services;
 using FinanceApp.Services.IEmailService;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -67,6 +68,8 @@ namespace FinanceApp
                 options.TokenLifespan = TimeSpan.FromHours(3);
             });
 
+            services.AddDataProtection()
+                    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys"))); // Add this line
             services.AddControllersWithViews();
 
             services.AddRazorPages();
@@ -81,6 +84,13 @@ namespace FinanceApp
                 options.SlidingExpiration = true;
                 options.Cookie.HttpOnly = true;
             });
+
+            string keysFolder = Path.Combine(Directory.GetCurrentDirectory(), "keys");
+            if (!Directory.Exists(keysFolder))
+            {
+                Directory.CreateDirectory(keysFolder);
+            }
+
 
             string sendGridApiKey = Configuration["SendGrid:ApiKey"];
             services.AddSingleton<IEmailService>(new SendGridEmailService(sendGridApiKey));
