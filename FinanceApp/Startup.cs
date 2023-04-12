@@ -48,7 +48,9 @@ namespace FinanceApp
                 }
                 else
                 {
-                    options.UseNpgsql(Configuration.GetConnectionString("HerokuConnection"));
+                    var herokuConnectionString = Configuration.GetConnectionString("HerokuConnection");
+                    Console.WriteLine("Heroku Connection String: " + herokuConnectionString); // Add this line
+                    options.UseNpgsql(herokuConnectionString);
                 }
             });
 
