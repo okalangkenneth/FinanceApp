@@ -40,7 +40,7 @@ namespace FinanceApp.Models
         GBP, // British Pound
         EUR, // Euro
         SEK, // Swedish Kronor
-        USH, // Uganda Shilling
+        
         // Add other currencies as needed
     }
 

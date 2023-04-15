@@ -38,9 +38,11 @@
             <div class="form-group">
                 <label asp-for="PreferredCurrency"></label>
                 <select asp-for="PreferredCurrency" class="form-control">
+                    <option selected="selected" value="">Choose a currency</option>
                     <option value="GBP">British Pound (GBP)</option>
                     <option value="USD">US Dollar (USD)</option>
                     <option value="EUR">Euro (EUR)</option>
+                    <option value="SEK">Swedish Krona (SEK)</option>
                     <!-- Add other currencies as needed -->
                 </select>
             </div>

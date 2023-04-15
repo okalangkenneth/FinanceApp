@@ -93,7 +93,7 @@ namespace FinanceApp
             }
 
 
-            string sendGridApiKey = Configuration["SendGrid:ApiKey"];
+            string sendGridApiKey = Configuration.GetValue<string>("SendGridApiKey");
             services.AddSingleton<IEmailService>(new SendGridEmailService(sendGridApiKey));
 
             services.AddHttpClient<OpenAIService>();
