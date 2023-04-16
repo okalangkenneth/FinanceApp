@@ -41,14 +41,12 @@ namespace FinanceApp
 
 
 
-            services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
+            services.AddDbContext<ApplicationDbContext>(options =>
             {
-                var herokuConnectionString = Configuration.GetConnectionString("HerokuConnection");
-                var localConnectionString = Configuration.GetConnectionString("DefaultConnection");
-                var logger = serviceProvider.GetRequiredService<ILogger<Startup>>();
+                
 
-                logger.LogInformation("Local Connection String: {LocalConnectionString}", localConnectionString);
-                logger.LogInformation("Heroku Connection String: {HerokuConnectionString}", herokuConnectionString);
+                var herokuConnectionString = System.Environment.GetEnvironmentVariable("HEROKU_CONNECTION_STRING");
+                var localConnectionString = Configuration.GetConnectionString("DefaultConnection");
 
                 if (Environment.IsDevelopment() || string.IsNullOrEmpty(herokuConnectionString))
                 {
@@ -56,6 +54,7 @@ namespace FinanceApp
                 }
                 else
                 {
+                    
                     options.UseNpgsql(herokuConnectionString);
                 }
             });
@@ -155,8 +154,17 @@ namespace FinanceApp
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ApplicationDbContext dbContext)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ApplicationDbContext dbContext, ILoggerFactory loggerFactory)
         {
+            var logger = loggerFactory.CreateLogger<Startup>();
+            var herokuConnectionString = System.Environment.GetEnvironmentVariable("HEROKU_CONNECTION_STRING");
+
+            if (!string.IsNullOrEmpty(herokuConnectionString))
+            {
+                logger.LogInformation("Heroku Connection String: " + herokuConnectionString);
+            }
+
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
