@@ -41,10 +41,14 @@ namespace FinanceApp
 
 
 
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
             {
-                var herokuConnectionString = System.Environment.GetEnvironmentVariable("HEROKU_CONNECTION_STRING");
+                var herokuConnectionString = Configuration.GetConnectionString("HerokuConnection");
                 var localConnectionString = Configuration.GetConnectionString("DefaultConnection");
+                var logger = serviceProvider.GetRequiredService<ILogger<Startup>>();
+
+                logger.LogInformation("Local Connection String: {LocalConnectionString}", localConnectionString);
+                logger.LogInformation("Heroku Connection String: {HerokuConnectionString}", herokuConnectionString);
 
                 if (Environment.IsDevelopment() || string.IsNullOrEmpty(herokuConnectionString))
                 {
@@ -52,10 +56,10 @@ namespace FinanceApp
                 }
                 else
                 {
-                    Console.WriteLine("Heroku Connection String: " + herokuConnectionString);
                     options.UseNpgsql(herokuConnectionString);
                 }
             });
+
 
 
             services.AddDatabaseDeveloperPageExceptionFilter();
@@ -74,6 +78,33 @@ namespace FinanceApp
             services.AddDataProtection()
                     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys"))); // Add this line
             services.AddControllersWithViews();
+
+            // Log the environment
+            var environment = System .Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            Console.WriteLine($"ASPNETCORE_ENVIRONMENT: {environment}");
+
+            if (environment == "Production")
+            {
+                var herokuConnectionString = Configuration.GetConnectionString("HerokuConnection");
+                Console.WriteLine($"Heroku Connection String (from appsettings.Production.json): {herokuConnectionString}");
+
+                // Log the value from the environment variable
+                var herokuConnectionStringEnv = System.Environment.GetEnvironmentVariable("HEROKU_CONNECTION_STRING");
+                Console.WriteLine($"Heroku Connection String (from environment variable): {herokuConnectionStringEnv}");
+
+                services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseNpgsql(herokuConnectionString));
+            }
+            else
+            {
+                services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            }
+
+            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
+
 
             services.AddRazorPages();
 
