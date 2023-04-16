@@ -18,7 +18,9 @@ namespace FinanceApp
                     webBuilder.UseStartup<Startup>();
                     webBuilder.UseKestrel(options =>
                     {
+
                         options.ListenAnyIP(Int32.Parse(Environment.GetEnvironmentVariable("PORT") ?? "10000"));
+
                     });
                 });
     }

@@ -1,0 +1,10 @@
+# pack-refs with: peeled fully-peeled sorted 
+abd4833b5498e143756e6ef7a743f60365dc7468 refs/heads/deploy-heroku
+2808c15608f3775f0aa32f1e6f48648c91795cad refs/heads/master
+58e981ecb1dc2f6c1b015c8871c8055ae304a449 refs/pull/1/head
+1aab2816ae98dd4e8f3e3a41cb6d6a226f0e262c refs/pull/2/head
+e8dcd957702dee1997ab643eeecc4687ba981ccd refs/pull/3/head
+8c54735b9f7eb38a6f83ee1a198ff0addbd24af4 refs/pull/4/head
+8c54735b9f7eb38a6f83ee1a198ff0addbd24af4 refs/pull/5/head
+abd4833b5498e143756e6ef7a743f60365dc7468 refs/pull/6/head
+8495b461a2cdf51b30743d07d5b58db90c879ba7 refs/pull/6/merge

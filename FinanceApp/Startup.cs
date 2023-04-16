@@ -43,14 +43,16 @@ namespace FinanceApp
 
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                if (Environment.IsDevelopment())
+                var herokuConnectionString = System.Environment.GetEnvironmentVariable("HEROKU_CONNECTION_STRING");
+                var localConnectionString = Configuration.GetConnectionString("DefaultConnection");
+
+                if (Environment.IsDevelopment() || string.IsNullOrEmpty(herokuConnectionString))
                 {
-                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+                    options.UseSqlServer(localConnectionString);
                 }
                 else
                 {
-                    var herokuConnectionString = System.Environment.GetEnvironmentVariable("HEROKU_CONNECTION_STRING");
-                    Console.WriteLine("Heroku Connection String: " + herokuConnectionString); // Add this line
+                    Console.WriteLine("Heroku Connection String: " + herokuConnectionString);
                     options.UseNpgsql(herokuConnectionString);
                 }
             });

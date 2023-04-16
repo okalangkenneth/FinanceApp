@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using FinanceApp.Models;
 
+
+
 namespace FinanceApp.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
@@ -52,6 +54,7 @@ namespace FinanceApp.Data
                 .HasForeignKey(g => g.UserId)
                 .IsRequired();
         }
+
     }
 }
 
