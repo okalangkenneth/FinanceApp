@@ -162,6 +162,8 @@ namespace FinanceApp.Controllers
                     _logger.LogInformation($"Generated callback URL: {callbackUrl}");
                     await _emailService.SendEmailAsync(model.Email, "Confirm your email", $"Please confirm your account by <a href='{callbackUrl}'>clicking here</a>.");
 
+                    _logger.LogInformation($"Email sent to {model.Email} with confirmation link.");
+
                     return RedirectToAction("Index", "Home");
                 }
                 AddErrors(result);
