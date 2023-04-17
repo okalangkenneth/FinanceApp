@@ -164,7 +164,7 @@ namespace FinanceApp.Controllers
 
                     _logger.LogInformation($"Email sent to {model.Email} with confirmation link.");
 
-                    return RedirectToAction("Index", "Home");
+                    return View("~/Views/Shared/EmailSent.cshtml");
                 }
                 AddErrors(result);
             }
