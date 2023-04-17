@@ -1,3 +1,8 @@
+using System;
+using System.IO;
+using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using DinkToPdf;
 using DinkToPdf.Contracts;
 using FinanceApp.Data;
@@ -14,11 +19,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Runtime.InteropServices;
-using System.Runtime.Loader;
+using Npgsql;
 
 namespace FinanceApp
 {
@@ -33,19 +34,12 @@ namespace FinanceApp
             Environment = environment;
         }
 
-
-
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-
-
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                
-
-                var herokuConnectionString = System.Environment.GetEnvironmentVariable("HEROKU_CONNECTION_STRING");
+                var herokuConnectionString = System.Environment.GetEnvironmentVariable("DATABASE_URL");
                 var localConnectionString = Configuration.GetConnectionString("DefaultConnection");
 
                 if (Environment.IsDevelopment() || string.IsNullOrEmpty(herokuConnectionString))
@@ -54,8 +48,10 @@ namespace FinanceApp
                 }
                 else
                 {
-                    
+
+
                     options.UseNpgsql(herokuConnectionString);
+                      
                 }
             });
 
@@ -75,35 +71,11 @@ namespace FinanceApp
             });
 
             services.AddDataProtection()
-                    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys"))); // Add this line
+                    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")));
             services.AddControllersWithViews();
-
-            // Log the environment
-            var environment = System .Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            Console.WriteLine($"ASPNETCORE_ENVIRONMENT: {environment}");
-
-            if (environment == "Production")
-            {
-                var herokuConnectionString = Configuration.GetConnectionString("HerokuConnection");
-                Console.WriteLine($"Heroku Connection String (from appsettings.Production.json): {herokuConnectionString}");
-
-                // Log the value from the environment variable
-                var herokuConnectionStringEnv = System.Environment.GetEnvironmentVariable("HEROKU_CONNECTION_STRING");
-                Console.WriteLine($"Heroku Connection String (from environment variable): {herokuConnectionStringEnv}");
-
-                services.AddDbContext<ApplicationDbContext>(options =>
-                    options.UseNpgsql(herokuConnectionString));
-            }
-            else
-            {
-                services.AddDbContext<ApplicationDbContext>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            }
 
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
-
-
 
             services.AddRazorPages();
 
@@ -124,16 +96,11 @@ namespace FinanceApp
                 Directory.CreateDirectory(keysFolder);
             }
 
-
             string sendGridApiKey = Configuration.GetValue<string>("SendGridApiKey");
             services.AddSingleton<IEmailService>(new SendGridEmailService(sendGridApiKey));
 
             services.AddHttpClient<OpenAIService>();
             services.AddSingleton(x => new OpenAIService(x.GetRequiredService<HttpClient>(), Configuration["OpenAI:ApiKey"], x.GetRequiredService<ILogger<OpenAIService>>()));
-
-            
-
-
 
             services.AddAuthorization();
 
@@ -143,28 +110,26 @@ namespace FinanceApp
                 if (libraryName.StartsWith("libwkhtmltox"))
                 {
                     string arch = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
-                    string libPath = Path.Combine(Directory.GetCurrentDirectory(), "wkhtmltox", arch, "libwkhtmltox");
+                                    string libPath = Path.Combine(Directory.GetCurrentDirectory(), "wkhtmltox", arch, "libwkhtmltox");
                     return NativeLibrary.Load(libPath);
                 }
                 return IntPtr.Zero;
             };
             services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
-
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ApplicationDbContext dbContext, ILoggerFactory loggerFactory)
         {
             var logger = loggerFactory.CreateLogger<Startup>();
-            var herokuConnectionString = System.Environment.GetEnvironmentVariable("HEROKU_CONNECTION_STRING");
+            var herokuConnectionString = System.Environment.GetEnvironmentVariable("DATABASE_URL");
 
             if (!string.IsNullOrEmpty(herokuConnectionString))
             {
-                logger.LogInformation("Heroku Connection String: " + herokuConnectionString);
+               
+
+                logger.LogInformation("Heroku Connection String is set.");
             }
-
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -186,7 +151,6 @@ namespace FinanceApp
 
             app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
@@ -198,13 +162,10 @@ namespace FinanceApp
                 name: "Identity",
                 areaName: "Identity",
                 pattern: "Identity/{controller=Account}/{action=Login}/{id?}");
-
-
             });
 
             // Seed dummy data
-          // SeedData.Seed(dbContext);
+            // SeedData.Seed(dbContext);
         }
-
     }
 }
