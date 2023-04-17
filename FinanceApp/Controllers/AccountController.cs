@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace FinanceApp.Controllers
@@ -115,6 +116,7 @@ namespace FinanceApp.Controllers
 
             if (user == null)
             {
+                _logger.LogError($"Unable to load user with ID '{userId}'.");
                 return NotFound($"Unable to load user with ID '{userId}'.");
             }
 
@@ -131,13 +133,17 @@ namespace FinanceApp.Controllers
                 }
                 else
                 {
-                    // Log the error or show a message to the user
+                    _logger.LogError($"Error updating user after email confirmation: {string.Join(", ", updateResult.Errors.Select(e => e.Description))}");
                     return BadRequest("Error updating user after email confirmation.");
                 }
             }
-
-            return BadRequest("Error confirming your email.");
+            else
+            {
+                _logger.LogError($"Error confirming email: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                return BadRequest("Error confirming your email.");
+            }
         }
+
 
 
         [HttpGet]
