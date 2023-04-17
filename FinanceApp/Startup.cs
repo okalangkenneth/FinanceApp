@@ -39,29 +39,15 @@ namespace FinanceApp
         {
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                var herokuConnectionString = System.Environment.GetEnvironmentVariable("DATABASE_URL");
-                var localConnectionString = Configuration.GetConnectionString("DefaultConnection");
+                var connectionString = Configuration.GetConnectionString("DefaultConnection");
 
-                if (Environment.IsDevelopment() || string.IsNullOrEmpty(herokuConnectionString))
+                if (!string.IsNullOrEmpty(Configuration["DATABASE_URL"]))
                 {
-                    options.UseSqlServer(localConnectionString);
-                }
-                else
-                {
-                    var databaseUri = new Uri(herokuConnectionString);
-                    var userInfo = databaseUri.UserInfo.Split(':');
-                    var builder = new NpgsqlConnectionStringBuilder
-                    {
-                        Host = databaseUri.Host,
-                        Port = databaseUri.Port,
-                        Username = userInfo[0],
-                        Password = userInfo[1],
-                        Database = databaseUri.LocalPath.TrimStart('/')
-                    };
-
-                    options.UseNpgsql(builder.ConnectionString);
+                    var databaseUrl = Configuration["DATABASE_URL"];
+                    connectionString = ConvertDatabaseUrlToHerokuConnectionString(databaseUrl);
                 }
 
+                options.UseNpgsql(connectionString);
             });
 
 
@@ -176,5 +162,24 @@ namespace FinanceApp
             // Seed dummy data
             // SeedData.Seed(dbContext);
         }
+        private string ConvertDatabaseUrlToHerokuConnectionString(string databaseUrl)
+        {
+            var databaseUri = new Uri(databaseUrl);
+            var userInfo = databaseUri.UserInfo.Split(':');
+
+            var builder = new NpgsqlConnectionStringBuilder
+            {
+                Host = databaseUri.Host,
+                Port = databaseUri.Port,
+                Database = databaseUri.LocalPath.TrimStart('/'),
+                Username = userInfo[0],
+                Password = userInfo[1],
+                SslMode = Npgsql.SslMode.Require,
+                TrustServerCertificate = true,
+            };
+
+            return builder.ToString();
+        }
+
     }
 }
