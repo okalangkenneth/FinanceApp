@@ -48,11 +48,20 @@ namespace FinanceApp
                 }
                 else
                 {
+                    var databaseUri = new Uri(herokuConnectionString);
+                    var userInfo = databaseUri.UserInfo.Split(':');
+                    var builder = new NpgsqlConnectionStringBuilder
+                    {
+                        Host = databaseUri.Host,
+                        Port = databaseUri.Port,
+                        Username = userInfo[0],
+                        Password = userInfo[1],
+                        Database = databaseUri.LocalPath.TrimStart('/')
+                    };
 
-
-                    options.UseNpgsql(herokuConnectionString);
-                      
+                    options.UseNpgsql(builder.ConnectionString);
                 }
+
             });
 
 
