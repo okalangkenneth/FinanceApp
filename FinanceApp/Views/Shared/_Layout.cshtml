@@ -10,14 +10,14 @@
 <body>
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <a class="navbar-brand" asp-controller="Home" asp-action="LogOutAndRedirect">FinTrak</a>
+            <a class="navbar-brand text-light" asp-controller="Home" asp-action="Index">FinTrak</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Home" asp-action="LogOutAndRedirect">Home</a>
+                        <a class="nav-link text-light" asp-controller="Home" asp-action="Index">Home</a>
                     </li>
                     @if (User.Identity.IsAuthenticated)
                     {
