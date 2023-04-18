@@ -77,10 +77,12 @@ namespace FinanceApp
 
             services.AddAuthentication()
                     .AddGoogle(options =>
-                    {
+            {
             options.ClientId = System.Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
             options.ClientSecret = System.Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
-                    });
+            options.CallbackPath = "/signin-google";
+
+            });
 
 
             services.ConfigureApplicationCookie(options =>
