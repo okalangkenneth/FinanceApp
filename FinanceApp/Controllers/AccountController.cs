@@ -177,7 +177,8 @@ namespace FinanceApp.Controllers
 
         // Add the ExternalLogin action
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
         public IActionResult ExternalLogin(string provider, string returnUrl = null)
         {
             // Request a redirect to the external login provider.
