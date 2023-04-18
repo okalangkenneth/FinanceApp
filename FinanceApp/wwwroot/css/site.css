@@ -84,4 +84,17 @@ body {
 .category {
     /* Add any additional styling for individual category items here */
 }
+.google-signin-button {
+    background-color: #4285f4;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+    .google-signin-button:hover {
+        background-color: #2a75f3;
+    }
 
