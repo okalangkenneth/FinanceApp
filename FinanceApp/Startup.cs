@@ -162,15 +162,15 @@ namespace FinanceApp
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
 
-                endpoints.MapAreaControllerRoute(
-                name: "Identity",
-                areaName: "Identity",
-                pattern: "Identity/{controller=Account}/{action=Login}/{id?}");
+                //endpoints.MapAreaControllerRoute(
+                //name: "Identity",
+                //areaName: "Identity",
+                //pattern: "Identity/{controller=Account}/{action=Login}/{id?}");
 
-                endpoints.MapAreaControllerRoute(
-                name: "ExternalLogin",
-                areaName: "Identity",
-                pattern: "Identity/{controller=Account}/{action=ExternalLogin}/{provider?}");
+                //endpoints.MapAreaControllerRoute(
+                //name: "ExternalLogin",
+                //areaName: "Identity",
+                //pattern: "Identity/{controller=Account}/{action=ExternalLogin}/{provider?}");
             });
 
             // Seed dummy data
