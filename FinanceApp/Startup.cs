@@ -21,7 +21,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using Microsoft.AspNetCore.Authentication.Google;
-
+using Microsoft.AspNetCore.Http;
 
 namespace FinanceApp
 {
@@ -80,7 +80,7 @@ namespace FinanceApp
             {
             options.ClientId = System.Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
             options.ClientSecret = System.Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
-            options.CallbackPath = "/signin-google";
+            options.CallbackPath = new PathString("/signin-google");
 
             });
 
@@ -101,7 +101,6 @@ namespace FinanceApp
             {
                 Directory.CreateDirectory(keysFolder);
             }
-
             string sendGridApiKey = Configuration.GetValue<string>("SendGridApiKey");
             services.AddSingleton<IEmailService>(new SendGridEmailService(sendGridApiKey));
 
