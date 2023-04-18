@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace FinanceApp.Controllers
@@ -143,9 +144,6 @@ namespace FinanceApp.Controllers
                 return BadRequest("Error confirming your email.");
             }
         }
-
-
-
         [HttpGet]
         public IActionResult Register()
         {
@@ -176,6 +174,89 @@ namespace FinanceApp.Controllers
             }
             return View("~/Views/Shared/Register.cshtml", model);
         }
+
+        // Add the ExternalLogin action
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ExternalLogin(string provider, string returnUrl = null)
+        {
+            // Request a redirect to the external login provider.
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return Challenge(properties, provider);
+        }
+
+        // Add the ExternalLoginCallback action
+        [HttpGet]
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        {
+            returnUrl = returnUrl ?? Url.Content("~/");
+
+            if (remoteError != null)
+            {
+                ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
+                return View("Login");
+            }
+
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                ModelState.AddModelError(string.Empty, "Error loading external login information.");
+                return View("Login");
+            }
+
+            // Sign in the user with this external login provider if the user already has a login.
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            if (result.Succeeded)
+            {
+                return LocalRedirect(returnUrl);
+            }
+            if (result.IsLockedOut)
+            {
+                return RedirectToPage("./Lockout");
+            }
+            else
+            {
+                // If the user does not have an account, then ask the user to create an account.
+                ViewData["ReturnUrl"] = returnUrl;
+                ViewData["LoginProvider"] = info.LoginProvider;
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = email });
+            }
+
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnUrl = null)
+        {
+            if (ModelState.IsValid)
+            {
+                // Get the information about the user from the external login provider
+                var info = await _signInManager.GetExternalLoginInfoAsync();
+                if (info == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Error loading external login information during confirmation.");
+                    return View(model);
+                }
+
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var result = await _userManager.CreateAsync(user);
+                if (result.Succeeded)
+                {
+                    result = await _userManager.AddLoginAsync(user, info);
+                    if (result.Succeeded)
+                    {
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return LocalRedirect(returnUrl);
+                    }
+                }
+                AddErrors(result);
+            }
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return View(model);
+        }
+
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Profile()

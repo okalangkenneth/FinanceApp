@@ -20,6 +20,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using Microsoft.AspNetCore.Authentication.Google;
+
 
 namespace FinanceApp
 {
@@ -69,10 +71,17 @@ namespace FinanceApp
                     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")));
             services.AddControllersWithViews();
 
-            //services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            //    .AddEntityFrameworkStores<ApplicationDbContext>();
+            
 
             services.AddRazorPages();
+
+            services.AddAuthentication()
+                    .AddGoogle(options =>
+                    {
+            options.ClientId = System.Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+            options.ClientSecret = System.Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+                    });
+
 
             services.ConfigureApplicationCookie(options =>
             {

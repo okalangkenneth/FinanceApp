@@ -32,6 +32,11 @@
                 <a asp-controller="Account" asp-action="Register">Register as a new user</a>
             </p>
         </form>
+        <hr>
+        <p>Or</p>
+        <a class="btn btn-primary" asp-controller="Account" asp-action="ExternalLogin" asp-route-provider="Google">
+            <i class="fab fa-google"></i> Log in with Google
+        </a>
     </div>
 </div>
 
