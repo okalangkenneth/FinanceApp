@@ -41,18 +41,25 @@ namespace FinanceApp
         {
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                var connectionString = Configuration.GetConnectionString("DefaultConnection");
-
-                if (!string.IsNullOrEmpty(Configuration["DATABASE_URL"]))
+                if (Environment.IsDevelopment())
                 {
-                    var databaseUrl = Configuration["DATABASE_URL"];
-                    connectionString = ConvertDatabaseUrlToHerokuConnectionString(databaseUrl);
+                    // Use SQL Server for local development
+                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
                 }
+                else
+                {
+                    // Use PostgreSQL for production
+                    var connectionString = Configuration.GetConnectionString("HerokuConnection");
 
-                options.UseNpgsql(connectionString);
+                    if (!string.IsNullOrEmpty(Configuration["DATABASE_URL"]))
+                    {
+                        var databaseUrl = Configuration["DATABASE_URL"];
+                        connectionString = ConvertDatabaseUrlToHerokuConnectionString(databaseUrl);
+                    }
+
+                    options.UseNpgsql(connectionString);
+                }
             });
-
-
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
