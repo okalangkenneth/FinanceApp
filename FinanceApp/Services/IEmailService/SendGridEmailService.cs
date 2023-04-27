@@ -12,18 +12,20 @@ public class SendGridEmailService : IEmailService
         _apiKey = apiKey;
     }
 
-    public async Task SendEmailAsync(string email, string subject, string htmlMessage)
+    public async Task<SendGrid.Response> SendEmailAsync(string email, string subject, string htmlMessage)
+{
+    var client = new SendGridClient(_apiKey);
+    var msg = new SendGridMessage()
     {
-        var client = new SendGridClient(_apiKey);
-        var msg = new SendGridMessage()
-        {
-            From = new EmailAddress("ken@backendinsight.com", "FinTrak"),
-            Subject = subject,
-            PlainTextContent = htmlMessage,
-            HtmlContent = htmlMessage
-        };
-        msg.AddTo(new EmailAddress(email));
+        From = new EmailAddress("ken@backendinsight.com", "FinTrak"),
+        Subject = subject,
+        PlainTextContent = htmlMessage,
+        HtmlContent = htmlMessage
+    };
+    msg.AddTo(new EmailAddress(email));
 
-        await client.SendEmailAsync(msg);
-    }
+    var response = await client.SendEmailAsync(msg);
+    return response;
+}
+
 }

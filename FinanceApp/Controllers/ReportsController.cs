@@ -7,6 +7,7 @@ using FinanceApp.Models;
 using FinanceApp.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using FinanceApp.Enums;
 
 namespace FinanceApp.Controllers
 {
@@ -44,17 +45,11 @@ namespace FinanceApp.Controllers
 
             // Process data
             decimal totalIncome = transactions
-                .Where(t => t.Category == TransactionCategory.Salary ||
-                            t.Category == TransactionCategory.Freelance ||
-                            t.Category == TransactionCategory.Investment ||
-                            t.Category == TransactionCategory.Gift)
+                .Where(t => t.Category == TransactionCategory.Income)
                 .Sum(t => t.Amount);
 
             decimal totalExpenses = transactions
-                .Where(t => t.Category != TransactionCategory.Salary &&
-                            t.Category != TransactionCategory.Freelance &&
-                            t.Category != TransactionCategory.Investment &&
-                            t.Category != TransactionCategory.Gift)
+                .Where(t => t.Category == TransactionCategory.Expense)
                 .Sum(t => t.Amount);
 
             // Pass data to the view
@@ -76,22 +71,20 @@ namespace FinanceApp.Controllers
 
 
             // Retrieve transactions data
-            var transactions = await _context.Transactions
+            var transactions = await _context.IncomeVsExpenses
             .Where(t => t.UserId == currentUser.Id)
             .ToListAsync();
 
             // Group transactions by category and calculate the sum of each category
             var categoryTotals = transactions
-                .Where(t => t.Category != TransactionCategory.Salary &&
-                            t.Category != TransactionCategory.Freelance &&
-                            t.Category != TransactionCategory.Investment &&
-                            t.Category != TransactionCategory.Gift)
-                .GroupBy(t => t.Category)
-                .Select(g => new CategoryTotal
-                {
-                    Category = g.Key,
-                    Total = g.Sum(t => t.Amount),
-                }).ToList();
+               .Where(t => t.Category == TransactionCategory.Expense)
+               .GroupBy(t => t.SubType)
+               .Select(g => new CategoryTotal
+               {
+                   SubType = g.Key,
+                   Total = g.Sum(t => t.Amount),
+               }).ToList();
+
 
             // Prepare the data model for the view
             var model = new CategoryBreakdownViewModel
@@ -122,15 +115,9 @@ namespace FinanceApp.Controllers
                 {
                     Year = g.Key.Year,
                     Month = g.Key.Month,
-                    Income = g.Where(t => t.Category == TransactionCategory.Salary ||
-                                           t.Category == TransactionCategory.Freelance ||
-                                           t.Category == TransactionCategory.Investment ||
-                                           t.Category == TransactionCategory.Gift)
+                    Income = g.Where(t => t.Category == TransactionCategory.Income)
                              .Sum(t => t.Amount),
-                    Expenses = g.Where(t => t.Category != TransactionCategory.Salary &&
-                                             t.Category != TransactionCategory.Freelance &&
-                                             t.Category != TransactionCategory.Investment &&
-                                             t.Category != TransactionCategory.Gift)
+                    Expenses = g.Where(t => t.Category == TransactionCategory.Expense)
                                .Sum(t => t.Amount),
                 }).ToList();
 

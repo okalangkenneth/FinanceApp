@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinanceApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230416214537_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20230426125137_updatedModels")]
+    partial class updatedModels
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -95,6 +95,37 @@ namespace FinanceApp.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
+            modelBuilder.Entity("FinanceApp.Models.Budget", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Budgets");
+                });
+
             modelBuilder.Entity("FinanceApp.Models.FinancialGoal", b =>
                 {
                     b.Property<int>("Id")
@@ -137,6 +168,87 @@ namespace FinanceApp.Migrations
                     b.ToTable("FinancialGoals");
                 });
 
+            modelBuilder.Entity("FinanceApp.Models.IncomeVsExpense", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.Property<int>("SubType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("IncomeVsExpenses");
+                });
+
+            modelBuilder.Entity("FinanceApp.Models.MonthlyBudget", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MonthlyBudgets");
+                });
+
+            modelBuilder.Entity("FinanceApp.Models.NetWorth", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("TotalAssets")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalLiabilities")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(MAX)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("NetWorths");
+                });
+
             modelBuilder.Entity("FinanceApp.Models.Transaction", b =>
                 {
                     b.Property<int>("Id")
@@ -159,6 +271,12 @@ namespace FinanceApp.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(MAX)");
 
+                    b.Property<int?>("FinancialGoalId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GoalId")
+                        .HasColumnType("int");
+
                     b.Property<string>("PreferredCurrency")
                         .HasColumnType("nvarchar(MAX)");
 
@@ -171,6 +289,8 @@ namespace FinanceApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FinancialGoalId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Transactions");
@@ -179,7 +299,7 @@ namespace FinanceApp.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("nvarchar(MAX)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -307,7 +427,51 @@ namespace FinanceApp.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("FinanceApp.Models.Budget", b =>
+                {
+                    b.HasOne("FinanceApp.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+                });
+
             modelBuilder.Entity("FinanceApp.Models.FinancialGoal", b =>
+                {
+                    b.HasOne("FinanceApp.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("FinanceApp.Models.IncomeVsExpense", b =>
+                {
+                    b.HasOne("FinanceApp.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("FinanceApp.Models.MonthlyBudget", b =>
+                {
+                    b.HasOne("FinanceApp.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("FinanceApp.Models.NetWorth", b =>
                 {
                     b.HasOne("FinanceApp.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
@@ -320,6 +484,10 @@ namespace FinanceApp.Migrations
 
             modelBuilder.Entity("FinanceApp.Models.Transaction", b =>
                 {
+                    b.HasOne("FinanceApp.Models.FinancialGoal", "FinancialGoal")
+                        .WithMany("Transactions")
+                        .HasForeignKey("FinancialGoalId");
+
                     b.HasOne("FinanceApp.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -327,6 +495,8 @@ namespace FinanceApp.Migrations
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");
+
+                    b.Navigation("FinancialGoal");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -378,6 +548,11 @@ namespace FinanceApp.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("FinanceApp.Models.FinancialGoal", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }

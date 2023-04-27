@@ -1,4 +1,5 @@
 ﻿using FinanceApp.Data;
+using FinanceApp.Enums;
 using FinanceApp.Models;
 using FinanceApp.Models.ViewModels;
 using Microsoft.AspNetCore.Authentication;
@@ -77,14 +78,14 @@ namespace FinanceApp.Controllers
                 {
                     Category = category,
                     Amount = transactions
-                        .Where(t => t.Type == TransactionType.Expense && t.Category == category)
+                        .Where(t => t.Category == TransactionCategory.Expense && t.Category == category)
                         .Sum(t => t.Amount)
                 })
                 .ToList();
 
             // Calculate total income, expenses, and balance
-            decimal income = transactions.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount);
-            decimal expenses = transactions.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount);
+            decimal income = transactions.Where(t => t.Category == TransactionCategory.Income).Sum(t => t.Amount);
+            decimal expenses = transactions.Where(t => t.Category == TransactionCategory.Expense).Sum(t => t.Amount);
             decimal balance = income - expenses;
 
             ViewBag.Income = income;

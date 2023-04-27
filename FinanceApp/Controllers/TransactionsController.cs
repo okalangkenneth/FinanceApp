@@ -1,12 +1,16 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using FinanceApp.Data;
+﻿using FinanceApp.Data;
+using FinanceApp.Enums;
+using FinanceApp.Hubs;
 using FinanceApp.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization;
 using FinanceApp.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace FinanceApp.Controllers
 {
@@ -15,11 +19,13 @@ namespace FinanceApp.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IHubContext<FinanceAppHub> _hubContext;
 
-        public TransactionsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public TransactionsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IHubContext<FinanceAppHub> hubContext)
         {
             _context = context;
             _userManager = userManager;
+            _hubContext = hubContext;
         }
 
         // GET: Transactions
@@ -38,29 +44,11 @@ namespace FinanceApp.Controllers
             return View(viewModel);
         }
 
-
-
         // GET: Transactions/Create
         public IActionResult Create()
         {
             return View();
         }
-
-        // POST: Transactions/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Date,Description,Amount,Type,Category,Currency")] Transaction transaction)
-        {
-            if (ModelState.IsValid)
-            {
-                transaction.UserId = _userManager.GetUserId(User);
-                _context.Add(transaction);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(transaction);
-        }
-
 
         // GET: Transactions/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -95,6 +83,7 @@ namespace FinanceApp.Controllers
                     transaction.UserId = _userManager.GetUserId(User);
                     _context.Update(transaction);
                     await _context.SaveChangesAsync();
+                    await SendChartDataUpdate();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -138,13 +127,52 @@ namespace FinanceApp.Controllers
             var transaction = await _context.Transactions.FindAsync(id);
             _context.Transactions.Remove(transaction);
             await _context.SaveChangesAsync();
+            await SendChartDataUpdate();
             return RedirectToAction(nameof(Index));
         }
+
 
         private bool TransactionExists(int id)
         {
             return _context.Transactions.Any(e => e.Id == id);
         }
+
+
+        private async Task SendChartDataUpdate()
+        {
+            await _hubContext.Clients.All.SendAsync("UpdateChartData");
+        }
+        // POST: Transactions/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(TransactionViewModel transactionVM)
+        {
+            if (ModelState.IsValid)
+            {
+                var transaction = new Transaction
+                {
+                    Category = (TransactionCategory)Enum.Parse(typeof(TransactionCategory), transactionVM.Category),
+                    SubType = (TransactionSubType)Enum.Parse(typeof(TransactionSubType), transactionVM.SubType),
+                    Amount = transactionVM.Amount,
+                    Date = transactionVM.Date,
+                    Description = transactionVM.Description, // Add this line
+                    Currency = (Currency)Enum.Parse(typeof(Currency), transactionVM.Currency),
+                    UserId = _userManager.GetUserId(User)
+                };
+
+
+                _context.Add(transaction);
+                await _context.SaveChangesAsync();
+
+                // Add this line to send the chart data update signal.
+                await SendChartDataUpdate();
+
+                return RedirectToAction(nameof(Index), "Dashboard");
+            }
+
+            return View(transactionVM);
+        }
+
     }
 }
 

@@ -27,8 +27,8 @@
         <tr>
             <td>@item.Date.ToShortDateString()</td>
             <td>@item.Description</td>
-            <td>@item.Type</td>
-            <td>@item.Category.ToString()</td>
+            <td>@item.SubType</td>
+            <td>@item.Category</td>
             <td>@CurrencyHelper.FormatAmount(item.Amount, item.Currency.ToString())</td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-secondary">Edit</a>

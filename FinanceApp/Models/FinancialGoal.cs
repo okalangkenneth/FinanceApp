@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System;
+using System.Collections.Generic;
 
 namespace FinanceApp.Models
 {
@@ -19,6 +20,9 @@ namespace FinanceApp.Models
 
         // Add this property
         public decimal Progress => CurrentAmount / TargetAmount * 100;
+        // Add a new navigation property for Transactions
+        public ICollection<Transaction> Transactions { get; set; }
+
     }
 
     public enum GoalStatus

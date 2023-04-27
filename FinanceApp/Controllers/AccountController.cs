@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -115,6 +116,8 @@ namespace FinanceApp.Controllers
 
             var user = await _userManager.FindByIdAsync(userId);
 
+            _logger.LogInformation($"ConfirmEmail called with userId: {userId}, token: {token}");
+
             if (user == null)
             {
                 _logger.LogError($"Unable to load user with ID '{userId}'.");
@@ -144,6 +147,7 @@ namespace FinanceApp.Controllers
                 return BadRequest("Error confirming your email.");
             }
         }
+
         [HttpGet]
         public IActionResult Register()
         {
@@ -156,7 +160,7 @@ namespace FinanceApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName,PreferredCurrency = model.PreferredCurrency };
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, PreferredCurrency = model.PreferredCurrency };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -164,9 +168,17 @@ namespace FinanceApp.Controllers
                     var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token = token }, protocol: HttpContext.Request.Scheme);
 
                     _logger.LogInformation($"Generated callback URL: {callbackUrl}");
-                    await _emailService.SendEmailAsync(model.Email, "Confirm your email", $"Please confirm your account by <a href='{callbackUrl}'>clicking here</a>.");
+                    var response = await _emailService.SendEmailAsync(model.Email, "Confirm your email", $"Please confirm your account by <a href='{callbackUrl}'>clicking here</a>.");
 
-                    _logger.LogInformation($"Email sent to {model.Email} with confirmation link.");
+                    if (response.StatusCode != HttpStatusCode.Accepted)
+                    {
+                        // Log the response or handle the error
+                        _logger.LogError("Failed to send the email. StatusCode: {0}, Response: {1}", response.StatusCode, response.Body.ReadAsStringAsync().Result);
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"Email sent to {model.Email} with confirmation link.");
+                    }
 
                     return View("~/Views/Shared/EmailSent.cshtml");
                 }
@@ -174,6 +186,7 @@ namespace FinanceApp.Controllers
             }
             return View("~/Views/Shared/Register.cshtml", model);
         }
+
 
         // Add the ExternalLogin action
         [HttpGet]

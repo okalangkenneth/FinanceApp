@@ -1,0 +1,83 @@
+﻿
+@using FinanceApp.Enums
+@model FinanceApp.Models.IncomeVsExpense
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Income Vs Expense</h4>
+<hr />
+
+<div class="form-group">
+    <label class="control-label">Select a record:</label>
+    <select id="record-dropdown" class="form-control">
+        <option value="">Choose a Record</option>
+        @foreach (var record in (List<FinanceApp.Models.IncomeVsExpense>)ViewData["UserRecords"])
+        {
+            <option value="@record.Id">@record.SubType - @record.Amount</option>
+        }
+    </select>
+</div>
+
+<div id="edit-form-container" style="display: none;">
+    <form asp-action="Edit">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Id" />
+        <div class="form-group">
+            <label asp-for="Amount" class="control-label"></label>
+            <input asp-for="Amount" class="form-control" />
+            <span asp-validation-for="Amount" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="SubType" class="control-label"></label>
+            <select asp-for="SubType" class="form-control" asp-items="Html.GetEnumSelectList<TransactionSubType>()">
+                <option selected="selected" value="">Choose a SubType</option>
+            </select>
+            <span asp-validation-for="SubType" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Save" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        </div>
+    </form>
+</div>
+
+<!-- Add an event listener for the dropdown -->
+<script>
+    document.getElementById("record-dropdown").addEventListener("change", async function (e) {
+        const recordId = e.target.value;
+        const editFormContainer = document.getElementById("edit-form-container");
+
+        if (recordId) {
+            const response = await fetch(`/IncomeVsExpenses/GetRecordById?id=${recordId}`);
+            const record = await response.json();
+            console.log(record.subType)
+            document.getElementById("Amount").value = record.amount;
+            // Update the SubType dropdown
+            const subTypeSelect = document.getElementById("SubType");
+            for (let i = 0; i < subTypeSelect.options.length; i++) {
+                if (subTypeSelect.options[i].value === record.subType) {
+                    subTypeSelect.selectedIndex = i;
+                    break;
+                }
+            }
+            document.getElementById("Id").value = record.id;
+            editFormContainer.style.display = "block";
+        } else {
+            document.getElementById("Amount").value = "";
+            document.getElementById("SubType").value = "";
+            document.getElementById("Id").value = "";
+            editFormContainer.style.display = "none";
+        }
+    });
+</script>
+
+
+
+
+
+
+

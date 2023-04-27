@@ -1,0 +1,30 @@
+﻿@model FinanceApp.Models.IncomeVsExpense
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1 class="text-center">Details</h1>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <table class="table table-borderless">
+                <tr>
+                    <th class="text-right">@Html.DisplayNameFor(model => model.Amount)</th>
+                    <td>@Html.DisplayFor(model => model.Amount)</td>
+                </tr>
+                <tr>
+                    <th class="text-right">@Html.DisplayNameFor(model => model.SubType)</th>
+                    <td>@Html.DisplayFor(model => model.SubType)</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="text-center">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>
+

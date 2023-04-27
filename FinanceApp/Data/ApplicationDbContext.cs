@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using FinanceApp.Models;
-
-
+using Microsoft.AspNetCore.Identity;
 
 namespace FinanceApp.Data
 {
@@ -15,6 +14,11 @@ namespace FinanceApp.Data
 
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<FinancialGoal> FinancialGoals { get; set; }
+        public DbSet<IncomeVsExpense> IncomeVsExpenses { get; set; }
+        public DbSet<MonthlyBudget> MonthlyBudgets { get; set; }
+        public DbSet<NetWorth> NetWorths { get; set; }
+        public DbSet<Budget> Budgets { get; set; } 
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +46,23 @@ namespace FinanceApp.Data
                 }
             }
 
+            // Set precision and scale for decimal properties
+            modelBuilder.Entity<FinancialGoal>().Property(e => e.CurrentAmount).HasColumnType("decimal(18, 2)");
+            modelBuilder.Entity<FinancialGoal>().Property(e => e.TargetAmount).HasColumnType("decimal(18, 2)");
+            modelBuilder.Entity<IncomeVsExpense>().Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            modelBuilder.Entity<MonthlyBudget>().Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            modelBuilder.Entity<NetWorth>().Property(e => e.TotalAssets).HasColumnType("decimal(18, 2)");
+            modelBuilder.Entity<NetWorth>().Property(e => e.TotalLiabilities).HasColumnType("decimal(18, 2)");
+            modelBuilder.Entity<Transaction>().Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            modelBuilder.Entity<Budget>().Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+
+
+            modelBuilder.Entity<IdentityRole>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnType("nvarchar(450)");
+            });
+
+
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.ApplicationUser)
                 .WithMany()
@@ -53,8 +74,30 @@ namespace FinanceApp.Data
                 .WithMany()
                 .HasForeignKey(g => g.UserId)
                 .IsRequired();
-        }
 
+            modelBuilder.Entity<IncomeVsExpense>()
+                .HasOne(ie => ie.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(ie => ie.UserId)
+                .IsRequired();
+
+            modelBuilder.Entity<MonthlyBudget>()
+                .HasOne(mb => mb.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(mb => mb.UserId)
+                .IsRequired();
+
+            modelBuilder.Entity<NetWorth>()
+                .HasOne(nw => nw.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(nw => nw.UserId)
+                .IsRequired();
+            modelBuilder.Entity<Budget>() // Add this block of code
+                .HasOne(b => b.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(b => b.UserId)
+                .IsRequired();
+        }
     }
 }
 

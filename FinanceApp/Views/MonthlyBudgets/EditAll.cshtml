@@ -1,0 +1,49 @@
+﻿@model FinanceApp.Models.MonthlyBudget
+@using FinanceApp.Models
+@{
+    ViewData["Title"] = "Edit All Monthly Budgets";
+    var userRecords = ViewData["UserRecords"] as List<MonthlyBudget>;
+}
+
+<h1>@ViewData["Title"]</h1>
+<form asp-action="SaveAll">
+    @for (var i = 0; i < userRecords.Count; i++)
+    {
+        <div class="form-group">
+            <label asp-for="Category" class="control-label">Category</label>
+            <input asp-for="@userRecords[i].Category" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="Amount" class="control-label">Amount</label>
+            <input asp-for="@userRecords[i].Amount" class="form-control" />
+            <input type="hidden" asp-for="@userRecords[i].Id" />
+            <input type="hidden" asp-for="@userRecords[i].UserId" />
+        </div>
+    }
+    <div class="form-group">
+        <input type="submit" value="Save" class="btn btn-primary" />
+    </div>
+</form>
+
+
+<script>
+    document.getElementById("record-dropdown").addEventListener("change", function (e) {
+        const recordId = e.target.value;
+        const editFormContainer = document.getElementById("edit-form-container");
+
+        if (recordId) {
+            const selectedRecord = userRecords.find(record => record.id === parseInt(recordId));
+
+            if (selectedRecord) {
+                document.getElementById("Category").value = selectedRecord.category;
+                document.getElementById("Amount").value = selectedRecord.amount;
+                document.getElementById("Id").value = selectedRecord.id;
+                document.getElementById("UserId").value = selectedRecord.userId;
+                editFormContainer.style.display = "block";
+            }
+        } else {
+            editFormContainer.style.display = "none";
+        }
+    });
+</script>
+

@@ -1,211 +1,307 @@
-﻿@model FinanceApp.Models.ViewModels.DashboardViewModel
+﻿@using Newtonsoft.Json;
+
+@model FinanceApp.Models.ViewModels.DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
 }
 
-
 <h2>@ViewData["Title"]</h2>
 
-<h6>Account Summary</h6>
+<p>Welcome to your personal finance dashboard! Here, you can track your income, expenses, monthly budget, and net worth. With these insights, you'll be able to make informed decisions and achieve your financial goals.</p>
 
-<div class="container">
-    <div class="container">
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="card text-white bg-success mb-3">
-                    <div class="card-header">Total Income</div>
-                    <div class="card-body">
-                        <h4 class="card-title">@ViewBag.Income.ToString("C")</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-white bg-danger mb-3">
-                    <div class="card-header">Total Expenses</div>
-                    <div class="card-body">
-                        <h4 class="card-title">@ViewBag.Expenses.ToString("C")</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-white bg-info mb-3">
-                    <div class="card-header">Balance</div>
-                    <div class="card-body">
-                        <h4 class="card-title">@ViewBag.Balance.ToString("C")</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="container-fluid">
+    <!-- Transactions and Financial Goals Tables -->
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-12 mb-4">
             <!-- Recent Transactions -->
-            <div class="card mb-4">
+            <div class="card">
                 <div class="card-header">
-                    Recent Transactions
+                    <h4 class="card-title">Recent Transactions</h4>
                 </div>
                 <div class="card-body">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Category</th>
-                                <th>Description</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var transaction in Model.Transactions)
-                            {
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
                                 <tr>
-                                    <td>@transaction.Date.ToShortDateString()</td>
-                                    <td>@transaction.Type</td>
-                                    <td>@transaction.Category</td>
-                                    <td>@transaction.Description</td>
-                                    <td>@transaction.Amount.ToString("C")</td>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
                                 </tr>
-                            }
-
-                        </tbody>
-                    </table>
-                    <a href="/Transactions" class="btn btn-primary">View All Transactions</a>
+                            </thead>
+                            <tbody>
+                                @foreach (var transaction in Model.Transactions)
+                                {
+                                    <tr>
+                                        <td>@transaction.Date.ToShortDateString()</td>
+                                        <td>@transaction.Category</td>
+                                        <td>@transaction.SubType</td>
+                                        <td>@transaction.Description</td>
+                                        <td>@($"{transaction.Amount:C}")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="/Transactions/Create" class="btn btn-primary">Add Transaction</a>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Financial goals -->
-    <div class="card mb-4">
-        <div class="card-header">
-            Financial Goals
-        </div>
-        <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Target Amount</th>
-                        <th>Current Amount</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Progress</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var goal in Model.FinancialGoals)
-                    {
-                        <tr>
-                            <td>@goal.Title</td>
-                            <td>@goal.Description</td>
-                            <td>@goal.TargetAmount.ToString("C")</td>
-                            <td>@goal.CurrentAmount.ToString("C")</td>
-                            <td>@goal.StartDate.ToShortDateString()</td>
-                            <td>@goal.EndDate.ToShortDateString()</td>
-                            <td>@((goal.CurrentAmount / goal.TargetAmount) * 100)%</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            <a href="/FinancialGoals" class="btn btn-primary">View All Financial Goals</a>
+            </div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-12">
-            <!-- Spending Analysis -->
+            <!-- Financial Goals -->
             <div class="card mb-4">
                 <div class="card-header">
-                    Spending Analysis
+                    <h4 class="card-title">Financial Goals</h4>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <ul class="list-group">
-                                @foreach (var sa in Model.SpendingAnalysis)
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Description</th>
+                                    <th>Target Amount</th>
+                                    <th>Current Amount</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var goal in Model.FinancialGoals)
                                 {
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        @sa.Category
-                                        <span class="badge badge-primary badge-pill">@sa.Amount.ToString("C")</span>
-                                    </li>
+                                    <tr>
+                                        <td>@goal.Title</td>
+                                        <td>@goal.Description</td>
+                                        <td>
+                                            @goal.TargetAmount
+                                        </td>
+                                        <td>@goal.CurrentAmount.ToString("C")</td>
+                                        <td>@goal.StartDate.ToShortDateString()</td>
+                                        <td>@goal.EndDate.ToShortDateString()</td>
+                                        <td>@((goal.CurrentAmount / goal.TargetAmount) * 100)%</td>
+                                    </tr>
                                 }
-                            </ul>
-                        </div>
-                        <div class="col-md-9">
-                            <div class="chart-container d-flex justify-content-center align-items-center" style="width: 100%; height: 400px;">
-                                <canvas id="spendingAnalysisChart" width="400" height="400"></canvas>
-                            </div>
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
+                    @*<a href="/FinancialGoals/Create" class="btn btn-primary">Add Financial Goal</a>*@
                 </div>
             </div>
+
         </div>
     </div>
 
-    <!--<div class="row">
-        <div class="col-md-12">-->
-    <!-- AI-Generated Recommendations -->
-    <!--<div class="card mb-4">
-        <div class="card-header">
-            AI-Generated Recommendations
-        </div>
-        <div class="card-body">-->
-    <!-- Display AI-generated recommendations here -->
-    <!--</div>
-            </div>
-        </div>
-    </div>-->
+    <!-- Charts -->
     <div class="row">
-        <div class="col-md-12">
-            <!-- Navigation -->
-            <div class="d-flex justify-content-between mb-4">
-                <div class="w-100" style="margin-bottom: 30px;">
-                    <a href="/Transactions/Create" class="btn btn-primary w-100 mr-2" style="max-width: 31%;">Add Transaction</a>
-                    <a href="/FinancialGoals/Create" class="btn btn-primary w-100 mx-2" style="max-width: 31%;">Add Financial Goal</a>
-                    <a href="/Reports" class="btn btn-primary w-100 ml-2" style="max-width: 31%;">View Reports</a>
+        <div class="col-lg-6 col-md-12 mb-4">
+            <!-- Income vs Expense -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h4 class="card-title">Income vs Expense</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="incomeVsExpenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12 mb-4">
+            <!-- Monthly Budget -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h4 class="card-title">Monthly Budget</h4>
+                    @*//<button class="btn btn-sm btn-primary" onclick="location.href='/Budgets/Create'">Add Budget</button>*@
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyBudgetChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
-
+    <div class="row">
+        <div class="col-lg-6 col-md-12 mb-4">
+            <!-- Net Worth -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h4 class="card-title">Net Worth</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="netWorthChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12 mb-4">
+            <!-- Monthly Budget Overview -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h4 class="card-title">Monthly Budget Overview</h4>
+                    @*<button class="btn btn-sm btn-primary" onclick="location.href='/MonthlyBudgets'">Edit</button>*@
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyBudgetOverviewChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+    
+
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Fetch the canvas element
-            var ctx = document.getElementById("spendingAnalysisChart").getContext("2d");
+        // Chart codes for Income vs Expense, Monthly Budget, Net Worth, and Monthly Budget Overview
 
-            @{
-                var colors = new List<string> { "#ff6384", "#36a2eb", "#cc65fe", "#ffce56", "#20c997", "#4bc0c0", "#c45850", "#e8c3b9", "#8e5ea2", "#3cba9f", "#2ecc71", "#9b59b6","#34495e","#f1c40f","#e74c3c"};
 
-                var categories = Model.SpendingAnalysis.Select(sa => sa.Category).ToArray();
-                var categoryColors = new Dictionary<string, string>();
 
-                for (int i = 0; i < categories.Length; i++)
-                {
-                    categoryColors[categories[i]] = colors[i % colors.Count];
+        /*Income vs Expense Chart*/
+        var incomeVsExpenseChart;
+
+        function createIncomeVsExpenseChart(labels, incomeData, expenseData) {
+            var incomeVsExpenseCtx = document.getElementById('incomeVsExpenseChart').getContext('2d');
+            return new Chart(incomeVsExpenseCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Income',
+                        data: incomeData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Expense',
+                        data: expenseData,
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+
+        async function updateChartData() {
+            try {
+                const response = await fetch('/Dashboard/GetIncomeVsExpenseData');
+                const updatedData = await response.json();
+
+                console.log("Updated data:", updatedData);
+
+                if (incomeVsExpenseChart) {
+                    incomeVsExpenseChart.destroy();
+                }
+
+                incomeVsExpenseChart = createIncomeVsExpenseChart(updatedData.labels, updatedData.amounts.Income, updatedData.amounts.Expense);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+
+        // Load chart data when the page is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            updateChartData();
+        });
+
+
+
+
+
+
+
+        /*Monthly Budget Chart*/
+
+    var monthlyBudgetCtx = document.getElementById('monthlyBudgetChart').getContext('2d');
+    var monthlyBudgetChart = new Chart(monthlyBudgetCtx, {
+        type: 'pie',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#E91E63', '#2196F3']
+            }]
+        }
+    });
+
+    // Net Worth Chart
+    var netWorthCtx = document.getElementById('netWorthChart').getContext('2d');
+    var netWorthChart = new Chart(netWorthCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Net Worth',
+                data: [],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+        // Monthly Budget Overview Chart
+        var monthlyBudgetOverviewCtx = document.getElementById('monthlyBudgetOverviewChart').getContext('2d');
+        var monthlyBudgetOverviewChart = new Chart(monthlyBudgetOverviewCtx, {
+            type: 'bar',
+            data: {
+                 labels: [],
+    datasets: [{
+        label: 'Planned Budget',
+        data: [],
+        backgroundColor: 'rgba(153, 102, 255, 0.5)',
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1
+    }, {
+        label: 'Income',
+        data: [],
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+    }, {
+        label: 'Expenses',
+        data: [],
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+    }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
                 }
             }
-
-            // Define chart data
-            var data = {
-                labels: @Html.Raw(Json.Serialize(categories)),
-                datasets: [{
-                    label: "Spending Analysis",
-                    backgroundColor: @Html.Raw(Json.Serialize(categories.Select(c => categoryColors[c]).ToArray())),
-                    data: @Html.Raw(Json.Serialize(Model.SpendingAnalysis.Select(cs => cs.Amount).ToArray()))
-                }]
-            };
-
-            // Render the chart
-            var myPieChart = new Chart(ctx, {
-                type: "pie",
-                data: data
-            });
         });
+
+
     </script>
 }
+
+
 
 
 

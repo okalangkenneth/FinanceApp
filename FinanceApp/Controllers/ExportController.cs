@@ -53,7 +53,7 @@ namespace FinanceApp.Controllers
                 worksheet.Cells[row, 1].Value = transaction.Date;
                 worksheet.Cells[row, 2].Value = transaction.Description;
                 worksheet.Cells[row, 3].Value = transaction.Amount;
-                worksheet.Cells[row, 4].Value = transaction.Type.ToString();
+                worksheet.Cells[row, 4].Value = transaction.Category.ToString();
                 worksheet.Cells[row, 5].Value = transaction.Category.ToString();
                 row++;
             }

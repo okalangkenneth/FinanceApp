@@ -1,4 +1,5 @@
-﻿@model FinanceApp.Models.Transaction
+﻿@using FinanceApp.Enums
+@model FinanceApp.Models.Transaction
 @{
     ViewData["Title"] = "Edit Transaction";
 }
@@ -20,23 +21,23 @@
         <input asp-for="Amount" class="form-control" />
     </div>
     <div class="form-group">
-        <label asp-for="Type">Type</label>
-        <select asp-for="Type" class="form-control">
+        <label asp-for="Category">Type</label>
+        <select asp-for="Category" class="form-control">
             <option value="Income">Income</option>
             <option value="Expense">Expense</option>
         </select>
     </div>
     <div class="form-group">
-        <label asp-for="Category">Category</label>
-        <select asp-for="Category" class="form-control" asp-items="Html.GetEnumSelectList<TransactionCategory>()">
+        <label asp-for="SubType">Category</label>
+        <select asp-for="SubType" class="form-control" asp-items="Html.GetEnumSelectList<TransactionSubType>()">
             <option value="">Select a Category</option>
         </select>
     </div>
-    
+
     <div class="form-group">
         <label asp-for="Currency" class="control-label"></label>
         <select asp-for="Currency" asp-items="Html.GetEnumSelectList<Currency>()" class="form-control">
-        <option selected="selected" value="">Choose a currency</option>
+            <option selected="selected" value="">Choose a currency</option>
         </select>
     </div>
 

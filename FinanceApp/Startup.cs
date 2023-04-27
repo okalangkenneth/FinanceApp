@@ -22,6 +22,8 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Http;
+using FinanceApp.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace FinanceApp
 {
@@ -32,7 +34,13 @@ namespace FinanceApp
 
         public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
-            Configuration = configuration;
+            var builder = new ConfigurationBuilder()
+               .SetBasePath(environment.ContentRootPath)
+               .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+               .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true)
+               .AddEnvironmentVariables();
+
+            Configuration = builder.Build();
             Environment = environment;
         }
 
@@ -41,25 +49,32 @@ namespace FinanceApp
         {
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                if (Environment.IsDevelopment())
+                var environmentName = Configuration.GetValue<string>("ASPNETCORE_ENVIRONMENT");
+
+                if (environmentName == "Development")
                 {
-                    // Use SQL Server for local development
-                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+                    options.UseSqlServer(Configuration.GetConnectionString("FinanceAppUpdateConnection"));
                 }
                 else
                 {
-                    // Use PostgreSQL for production
-                    var connectionString = Configuration.GetConnectionString("HerokuConnection");
-
-                    if (!string.IsNullOrEmpty(Configuration["DATABASE_URL"]))
+                    var herokuConnectionString = System.Environment.GetEnvironmentVariable("DATABASE_URL");
+                    if (string.IsNullOrEmpty(herokuConnectionString))
                     {
-                        var databaseUrl = Configuration["DATABASE_URL"];
-                        connectionString = ConvertDatabaseUrlToHerokuConnectionString(databaseUrl);
+                        throw new Exception("Invalid Heroku connection string in configuration.");
                     }
 
-                    options.UseNpgsql(connectionString);
+                    var convertedConnectionString = ConvertDatabaseUrlToHerokuConnectionString(herokuConnectionString);
+                    options.UseNpgsql(convertedConnectionString);
                 }
             });
+
+            // Add this line to log the connection string to the console
+            services.AddLogging(config =>
+            {
+                config.AddConsole();
+            });
+            services.AddSingleton(x => x.GetRequiredService<ILoggerFactory>().CreateLogger("ConnectionString"));
+
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -78,7 +93,15 @@ namespace FinanceApp
                     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")));
             services.AddControllersWithViews();
 
-            
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+                options.CheckConsentNeeded = context => true;
+                options.MinimumSameSitePolicy = SameSiteMode.Unspecified;
+                options.Secure = CookieSecurePolicy.Always;
+            });
+            services.AddSignalR();
+
 
             services.AddRazorPages();
 
@@ -90,8 +113,6 @@ namespace FinanceApp
             options.CallbackPath = new PathString("/signin-google");
 
             });
-
-
             services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = "/Account/Login";
@@ -108,7 +129,8 @@ namespace FinanceApp
             {
                 Directory.CreateDirectory(keysFolder);
             }
-            string sendGridApiKey = Configuration.GetValue<string>("SendGridApiKey");
+            string sendGridApiKey = System.Environment.GetEnvironmentVariable("SendGridApiKey");
+
             services.AddSingleton<IEmailService>(new SendGridEmailService(sendGridApiKey));
 
             services.AddHttpClient<OpenAIService>();
@@ -128,20 +150,19 @@ namespace FinanceApp
                 return IntPtr.Zero;
             };
             services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ApplicationDbContext dbContext, ILoggerFactory loggerFactory)
         {
-            var logger = loggerFactory.CreateLogger<Startup>();
-            var herokuConnectionString = System.Environment.GetEnvironmentVariable("DATABASE_URL");
-
-            if (!string.IsNullOrEmpty(herokuConnectionString))
-            {
-               
-
-                logger.LogInformation("Heroku Connection String is set.");
-            }
+            // Add these lines to log the connection string
+            var logger = app.ApplicationServices.GetRequiredService<ILoggerFactory>().CreateLogger("ConnectionString");
+            logger.LogInformation("DefaultConnection: {0}", Configuration.GetConnectionString("DefaultConnection"));
+            logger.LogInformation("HerokuConnection: {0}", Configuration.GetConnectionString("HerokuConnection"));
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -157,6 +178,7 @@ namespace FinanceApp
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseCookiePolicy();
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -170,10 +192,17 @@ namespace FinanceApp
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
 
+                endpoints.MapHub<FinanceAppHub>("/financeAppHub");
+
                 endpoints.MapAreaControllerRoute(
                 name: "Identity",
                 areaName: "Identity",
                 pattern: "Identity/{controller=Account}/{action=Login}/{id?}");
+
+                // Add this line
+                endpoints.MapControllerRoute(
+                    name: "edit-income-vs-expenses",
+                    pattern: "IncomeVsExpenses/Edit/{userId}");
 
                 //endpoints.MapAreaControllerRoute(
                 //name: "ExternalLogin",
@@ -182,7 +211,7 @@ namespace FinanceApp
             });
 
             // Seed dummy data
-            // SeedData.Seed(dbContext);
+            SeedData.Seed(dbContext);
         }
         private string ConvertDatabaseUrlToHerokuConnectionString(string databaseUrl)
         {
@@ -202,6 +231,22 @@ namespace FinanceApp
 
             return builder.ToString();
         }
+
+        private string GetDatabaseProviderFromConnectionString(string connectionString)
+        {
+            if (connectionString.Contains("Server="))
+            {
+                return "SqlServer";
+            }
+            else if (connectionString.Contains("Host="))
+            {
+                return "Npgsql";
+            }
+
+            return null;
+        }
+
+
 
     }
 }
