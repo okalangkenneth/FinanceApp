@@ -38,20 +38,6 @@ The application follows the MVC architectural pattern, with separate models, vie
 
 The application also follows good security practices, such as hashing and salting passwords, validating user input, and protecting against cross-site scripting (XSS) and cross-site request forgery (CSRF) attacks.
 
-## ****Features****
-
-[data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2738%27%20height=%2738%27/%3e](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2738%27%20height=%2738%27/%3e)
-
-1. **User Authentication**: The application provides secure user authentication using ASP.NET Core's Identity Framework. Users can register, log in, and manage their accounts.
-2. **Dashboard**: The dashboard provides a comprehensive overview of the user's financial status. It displays total income, expenses, and net worth. The net worth is visualized in a dynamic chart that updates in real-time using SignalR.
-3. **Transaction Management**: Users can record and categorize their income and expenses. The application supports various transaction categories, including food, utilities, rent, transportation, health, entertainment, education, savings, and others.
-4. **Financial Goals**: Users can set, update, and track their financial goals. Each goal includes a title, description, target amount, current amount, start date, end date, and status.
-5. **Spending Analysis**: The application uses OpenAI services to analyze spending habits and generate recommendations. This feature provides valuable insights into the user's spending patterns and offers suggestions for improvement.
-6. **Email Notifications**: The application uses SendGrid to send email notifications for account-related activities, such as email confirmation.
-7. **Data Export**: Users can export their financial data for further analysis or backup.
-8. **Currency Support**: The application supports multiple currencies, allowing users to record transactions in their preferred currency.
-9. **Responsive Design**: The application uses Bootstrap for a responsive design that works well on both desktop and mobile devices.
-10. **Reports**: Users can generate detailed financial reports, providing a comprehensive view of their financial status and history. The reports include a list of transactions and a monthly budget view.
 
 ## **Challenges and Solutions**
 
