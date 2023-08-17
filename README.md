@@ -28,7 +28,7 @@ Database Interaction: The demo gives you an insight into the registration and lo
 OpenAI API Calls: Our application leverages OpenAI, and each API call has associated costs. The demo is intentionally limited to avoid incurring these expenses.
 If you're interested in a more detailed walkthrough, showcasing all features of our application, please reach out to me directly. I'd be happy to provide a more in-depth demonstration upon request.
 
-Experience the live demo[here](https://fin-trak.herokuapp.com/).
+Experience the live demo [here](https://fin-trak.herokuapp.com/).
 
 
 
