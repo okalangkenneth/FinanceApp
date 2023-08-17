@@ -21,6 +21,7 @@ In addition, FinanceAI leverages GitHub Actions for continuous integration and d
 
 ## **Live Demo**
 
+[Live Demo](https://fin-trak.herokuapp.com/)
 
 ## **Features**
 
