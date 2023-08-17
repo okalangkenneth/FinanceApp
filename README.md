@@ -20,11 +20,13 @@ FinanceAI stands out with its unique integration of OpenAI services. This advanc
 In addition, FinanceAI leverages GitHub Actions for continuous integration and deployment, ensuring the application is always in a releasable state and facilitating automatic deployment to Heroku.
 
 ## **Demonstration**
-We are excited to offer a live demo of our application for those interested in getting a firsthand look! This demo, hosted on Heroku, showcases the registration and login processes.
+I am excited to offer a live demo of my application for those interested in getting a firsthand look! This demo, hosted on Heroku, showcases the registration and login processes.
+
 Please Note:
 Database Interaction: The demo gives you an insight into the registration and login flows, but actual user accounts will not be created. This is designed to protect our database and ensure the demo remains smooth for everyone.
+
 OpenAI API Calls: Our application leverages OpenAI, and each API call has associated costs. The demo is intentionally limited to avoid incurring these expenses.
-If you're interested in a more detailed walkthrough, showcasing all features of our application, please reach out to us directly. We'd be happy to provide a more in-depth demonstration upon request.
+If you're interested in a more detailed walkthrough, showcasing all features of our application, please reach out to me directly. I'd be happy to provide a more in-depth demonstration upon request.
 
 Experience the live demo[here](https://fin-trak.herokuapp.com/).
 
