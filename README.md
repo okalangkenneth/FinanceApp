@@ -1,6 +1,16 @@
 
 # FinanceAI: A Smart Personal Finance Manager Leveraging .NET Core, OpenAI, and GitHub Actions
 
+## Table of Contents:
+1. [Introduction](#introduction)
+2. [Live Demo](#live-demo)
+3. [Features](#features)
+4. [Technical Details](#technical-details)
+5. [Challenges and Solutions](#challenges-and-solutions)
+6. [Conclusion](#conclusion)
+
+
+
 ## **Introduction**
 
 FinanceAI is a cutting-edge, user-centric web application designed to revolutionize personal finance management. Developed with .NET Core, this application harnesses the power of OpenAI to provide users with a comprehensive suite of tools for tracking income, expenses, and financial goals, offering a clear and insightful view of their financial health.
@@ -8,6 +18,9 @@ FinanceAI is a cutting-edge, user-centric web application designed to revolution
 FinanceAI stands out with its unique integration of OpenAI services. This advanced technology is used to analyze spending habits and generate personalized recommendations, providing users with valuable insights and helping them make informed financial decisions.
 
 In addition, FinanceAI leverages GitHub Actions for continuous integration and deployment, ensuring the application is always in a releasable state and facilitating automatic deployment to Heroku.
+
+## **Live Demo**
+
 
 ## **Features**
 
