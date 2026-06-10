@@ -1,12 +1,10 @@
 ﻿using FinanceApp.Exceptions;
-using FinanceApp.Services.HttpRequestMessageExtensions;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace FinanceApp.Services
@@ -30,8 +28,8 @@ namespace FinanceApp.Services
         {
             string response = await SendRequestWithExponentialBackoffAsync(_httpClient, apiKey, endpoint, prompt);
 
-            JObject jsonResponse = JObject.Parse(response);
-            string result = jsonResponse["choices"][0]["text"].ToString().Trim();
+            using JsonDocument jsonResponse = JsonDocument.Parse(response);
+            string result = jsonResponse.RootElement.GetProperty("choices")[0].GetProperty("text").GetString().Trim();
 
             return result;
         }
@@ -47,7 +45,7 @@ namespace FinanceApp.Services
                 {
                     using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-                    request.Content = new StringContent(JsonConvert.SerializeObject(new { prompt = prompt, max_tokens = 150 }), Encoding.UTF8, "application/json");
+                    request.Content = new StringContent(JsonSerializer.Serialize(new { prompt = prompt, max_tokens = 150 }), Encoding.UTF8, "application/json");
 
 
                     HttpResponseMessage response = await httpClient.SendAsync(request);
@@ -108,8 +106,8 @@ namespace FinanceApp.Services
         {
             string response = await SendRequestWithExponentialBackoffAsync(_httpClient, apiKey, endpoint, prompt);
 
-            JObject jsonResponse = JObject.Parse(response);
-            string result = jsonResponse["choices"][0]["text"].ToString().Trim();
+            using JsonDocument jsonResponse = JsonDocument.Parse(response);
+            string result = jsonResponse.RootElement.GetProperty("choices")[0].GetProperty("text").GetString().Trim();
 
             return result;
         }

@@ -121,19 +121,7 @@ namespace FinanceApp.Controllers
             var result = await _userManager.ConfirmEmailAsync(user, token);
             if (result.Succeeded)
             {
-                // Manually update the EmailConfirmed field
-                user.EmailConfirmed = true;
-                var updateResult = await _userManager.UpdateAsync(user);
-
-                if (updateResult.Succeeded)
-                {
-                    return View("ConfirmEmail");
-                }
-                else
-                {
-                    // Log the error or show a message to the user
-                    return BadRequest("Error updating user after email confirmation.");
-                }
+                return View("ConfirmEmail");
             }
 
             return BadRequest("Error confirming your email.");
