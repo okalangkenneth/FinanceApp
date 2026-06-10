@@ -1,6 +1,9 @@
 ﻿using DinkToPdf;
 using FinanceApp.Data;
+using FinanceApp.Models;
 using FinanceApp.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
@@ -13,23 +16,29 @@ using System.Threading.Tasks;
 
 namespace FinanceApp.Controllers
 {
+    [Authorize]
     public class ExportController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly ICompositeViewEngine _viewEngine;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ExportController(ApplicationDbContext context, ICompositeViewEngine viewEngine)
+        public ExportController(ApplicationDbContext context, ICompositeViewEngine viewEngine, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _viewEngine = viewEngine;
+            _userManager = userManager;
         }
 
         public IActionResult ExportTransactionsReportExcel()
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-            // Retrieve data for the report
-            var transactions = _context.Transactions.ToList();
+            // Retrieve data for the report — current user's rows only
+            var userId = _userManager.GetUserId(User);
+            var transactions = _context.Transactions
+                .Where(t => t.UserId == userId)
+                .ToList();
             var viewModel = new TransactionsReportViewModel
             {
                 Transactions = transactions
@@ -69,8 +78,11 @@ namespace FinanceApp.Controllers
 
         public async Task<IActionResult> ExportTransactionsReportPdfAsync()
         {
-            // Retrieve data for the report
-            var transactions = _context.Transactions.ToList();
+            // Retrieve data for the report — current user's rows only
+            var userId = _userManager.GetUserId(User);
+            var transactions = _context.Transactions
+                .Where(t => t.UserId == userId)
+                .ToList();
             var viewModel = new TransactionsReportViewModel
             {
                 Transactions = transactions

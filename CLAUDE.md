@@ -19,8 +19,8 @@
 - **Phase 3** — Service wiring & configuration hygiene
 - **Phase 4** — Kubernetes manifests (local cluster, registry :5555)
 - **Phase 5** — CI/CD: rewrite GitHub Actions (Heroku target is dead)
-- **Phase 6** — Demo: MVC app ⇒ GitHub Pages won't work; decide recorded demo
-  + screenshots vs small cloud deployment. DECISION PENDING.
+- **Phase 6** — Demo: recorded demo + screenshots; docker-compose one-command
+  spin-up is the "try it yourself" story (DECIDED 2026-06-10)
 - **Phase 7** — README rewrite + LinkedIn post
 
 ## Anti-Hallucination Protocol
@@ -148,7 +148,7 @@ ABSENT from the tree — PDF export crashes at runtime, not just unmaintained).
 - EF Core 8 + Npgsql (PostgreSQL everywhere — dev and prod)
 - ASP.NET Core Identity 8
 - System.Text.Json (no Newtonsoft)
-- AI: Anthropic API or self-hosted Dify workflow (replaces OpenAI) — DECISION PENDING
+- AI: Anthropic Messages API direct, behind ISpendingAnalysisService (DECIDED 2026-06-10)
 - PDF: QuestPDF (replaces DinkToPdf) — pending license check
 - Excel: ClosedXML or EPPlus (pending license check)
 - Docker multi-stage, docker-compose, Kubernetes (local), GitHub Actions

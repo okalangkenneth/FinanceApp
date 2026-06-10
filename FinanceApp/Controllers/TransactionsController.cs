@@ -70,7 +70,9 @@ namespace FinanceApp.Controllers
                 return NotFound();
             }
 
-            var transaction = await _context.Transactions.FindAsync(id);
+            var userId = _userManager.GetUserId(User);
+            var transaction = await _context.Transactions
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
             if (transaction == null)
             {
                 return NotFound();
@@ -90,23 +92,23 @@ namespace FinanceApp.Controllers
 
             if (ModelState.IsValid)
             {
-                try
+                // Load the tracked entity scoped to the current user; never
+                // attach the posted entity (UserId must not be client-settable)
+                var userId = _userManager.GetUserId(User);
+                var existing = await _context.Transactions
+                    .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+                if (existing == null)
                 {
-                    transaction.UserId = _userManager.GetUserId(User);
-                    _context.Update(transaction);
-                    await _context.SaveChangesAsync();
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TransactionExists(transaction.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+
+                existing.Date = transaction.Date;
+                existing.Description = transaction.Description;
+                existing.Amount = transaction.Amount;
+                existing.Type = transaction.Type;
+                existing.Category = transaction.Category;
+                existing.Currency = transaction.Currency;
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(transaction);
@@ -120,8 +122,9 @@ namespace FinanceApp.Controllers
                 return NotFound();
             }
 
+            var userId = _userManager.GetUserId(User);
             var transaction = await _context.Transactions
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
             if (transaction == null)
             {
                 return NotFound();
@@ -135,15 +138,16 @@ namespace FinanceApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var transaction = await _context.Transactions.FindAsync(id);
+            var userId = _userManager.GetUserId(User);
+            var transaction = await _context.Transactions
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+            if (transaction == null)
+            {
+                return NotFound();
+            }
             _context.Transactions.Remove(transaction);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool TransactionExists(int id)
-        {
-            return _context.Transactions.Any(e => e.Id == id);
         }
     }
 }

@@ -74,8 +74,9 @@ namespace FinanceApp.Controllers
                 return NotFound();
             }
 
+            var userId = _userManager.GetUserId(User);
             var goal = await _context.FinancialGoals
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
             if (goal == null)
             {
                 return NotFound();
@@ -89,22 +90,24 @@ namespace FinanceApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var goal = await _context.FinancialGoals.FindAsync(id);
+            var userId = _userManager.GetUserId(User);
+            var goal = await _context.FinancialGoals
+                .FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
+            if (goal == null)
+            {
+                return NotFound();
+            }
             _context.FinancialGoals.Remove(goal);
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Financial goal deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
 
-
-        private bool GoalExists(int id)
-        {
-            return _context.FinancialGoals.Any(e => e.Id == id);
-        }
-
         public async Task<IActionResult> UpdateFinancialGoal(int id)
         {
-            var financialGoal = await _context.FinancialGoals.FindAsync(id);
+            var userId = _userManager.GetUserId(User);
+            var financialGoal = await _context.FinancialGoals
+                .FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
 
             if (financialGoal == null)
             {
@@ -128,11 +131,14 @@ namespace FinanceApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateFinancialGoal(UpdateFinancialGoalViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
-                var financialGoal = await _context.FinancialGoals.FindAsync(viewModel.Id);
+                var userId = _userManager.GetUserId(User);
+                var financialGoal = await _context.FinancialGoals
+                    .FirstOrDefaultAsync(g => g.Id == viewModel.Id && g.UserId == userId);
 
                 if (financialGoal == null)
                 {

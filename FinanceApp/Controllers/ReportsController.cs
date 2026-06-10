@@ -42,19 +42,14 @@ namespace FinanceApp.Controllers
             .Where(t => t.UserId == currentUser.Id)
             .ToListAsync();
 
-            // Process data
+            // Process data — classify by TransactionType so Reports and
+            // Dashboard agree (category is orthogonal to income/expense)
             decimal totalIncome = transactions
-                .Where(t => t.Category == TransactionCategory.Salary ||
-                            t.Category == TransactionCategory.Freelance ||
-                            t.Category == TransactionCategory.Investment ||
-                            t.Category == TransactionCategory.Gift)
+                .Where(t => t.Type == TransactionType.Income)
                 .Sum(t => t.Amount);
 
             decimal totalExpenses = transactions
-                .Where(t => t.Category != TransactionCategory.Salary &&
-                            t.Category != TransactionCategory.Freelance &&
-                            t.Category != TransactionCategory.Investment &&
-                            t.Category != TransactionCategory.Gift)
+                .Where(t => t.Type == TransactionType.Expense)
                 .Sum(t => t.Amount);
 
             // Pass data to the view
@@ -80,12 +75,9 @@ namespace FinanceApp.Controllers
             .Where(t => t.UserId == currentUser.Id)
             .ToListAsync();
 
-            // Group transactions by category and calculate the sum of each category
+            // Group expense transactions by category and calculate the sum of each category
             var categoryTotals = transactions
-                .Where(t => t.Category != TransactionCategory.Salary &&
-                            t.Category != TransactionCategory.Freelance &&
-                            t.Category != TransactionCategory.Investment &&
-                            t.Category != TransactionCategory.Gift)
+                .Where(t => t.Type == TransactionType.Expense)
                 .GroupBy(t => t.Category)
                 .Select(g => new CategoryTotal
                 {
@@ -122,15 +114,9 @@ namespace FinanceApp.Controllers
                 {
                     Year = g.Key.Year,
                     Month = g.Key.Month,
-                    Income = g.Where(t => t.Category == TransactionCategory.Salary ||
-                                           t.Category == TransactionCategory.Freelance ||
-                                           t.Category == TransactionCategory.Investment ||
-                                           t.Category == TransactionCategory.Gift)
+                    Income = g.Where(t => t.Type == TransactionType.Income)
                              .Sum(t => t.Amount),
-                    Expenses = g.Where(t => t.Category != TransactionCategory.Salary &&
-                                             t.Category != TransactionCategory.Freelance &&
-                                             t.Category != TransactionCategory.Investment &&
-                                             t.Category != TransactionCategory.Gift)
+                    Expenses = g.Where(t => t.Type == TransactionType.Expense)
                                .Sum(t => t.Amount),
                 }).ToList();
 
