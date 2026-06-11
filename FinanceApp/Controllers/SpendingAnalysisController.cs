@@ -4,6 +4,7 @@ using FinanceApp.Services.SpendingAnalysis;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -47,6 +48,7 @@ namespace FinanceApp.Controllers
             return promptBuilder.ToString();
         }
 
+        [EnableRateLimiting("ai-analysis")]
         public async Task<IActionResult> Analyze()
         {
             List<Transaction> transactions = await GetTransactionsForUser();
@@ -87,6 +89,7 @@ namespace FinanceApp.Controllers
             return View();
         }
 
+        [EnableRateLimiting("ai-analysis")]
         public async Task<IActionResult> Recommendations()
         {
             string prompt = "Provide some recommendations for better financial management.";

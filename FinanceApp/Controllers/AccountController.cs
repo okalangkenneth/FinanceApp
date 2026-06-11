@@ -42,38 +42,23 @@ namespace FinanceApp.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
-                if (user != null)
+                // No FindByEmailAsync pre-check: branching on user existence
+                // (or confirmation state) lets an attacker enumerate accounts.
+                // PasswordSignInAsync covers unknown user, wrong password, and
+                // unconfirmed email (NotAllowed) with one generic failure path.
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+                if (result.Succeeded)
                 {
-                    if (user.EmailConfirmed)
-                    {
-                        var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
-                        if (result.Succeeded)
-                        {
-                            return RedirectToLocal(returnUrl);
-                        }
-                        else if (result.IsLockedOut)
-                        {
-                            ModelState.AddModelError(string.Empty, "User account is locked out.");
-                        }
-                        else if (result.RequiresTwoFactor)
-                        {
-                            ModelState.AddModelError(string.Empty, "User requires two-factor authentication.");
-                        }
-                        else
-                        {
-                            
-                            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                        }
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, "Please confirm your email before logging in.");
-                    }
+                    return RedirectToLocal(returnUrl);
+                }
+                if (result.IsLockedOut)
+                {
+                    _logger.LogWarning("[AccountController] Account locked out after repeated failures");
+                    ModelState.AddModelError(string.Empty, "This account is temporarily locked. Try again later.");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "User not found.");
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 }
             }
 

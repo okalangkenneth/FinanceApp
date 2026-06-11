@@ -1,7 +1,6 @@
 ﻿using FinanceApp.Data;
 using FinanceApp.Models;
 using FinanceApp.Models.ViewModels;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -36,15 +35,6 @@ namespace FinanceApp.Controllers
         {
             return View();
         }
-        public async Task<IActionResult> LogOutAndRedirect()
-        {
-            if (User.Identity.IsAuthenticated)
-            {
-                await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
-            }
-            return RedirectToAction(nameof(Index));
-        }
-
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

@@ -4,8 +4,10 @@ using FinanceApp.Services.IEmailService;
 using FinanceApp.Services.SpendingAnalysis;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,6 +81,25 @@ builder.Services.AddHttpClient<ISpendingAnalysisService, AnthropicSpendingAnalys
 
 builder.Services.AddAuthorization();
 
+// The spending-analysis endpoints call a metered third-party API (Anthropic)
+// from a button click — a tight per-user window caps the spend if the button
+// is hammered or scripted. Applied via [EnableRateLimiting("ai-analysis")].
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("ai-analysis", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            // Endpoints are [Authorize]d, so the identity name is always set;
+            // the fallback partition only ever sees unauthenticated 401 traffic.
+            partitionKey: httpContext.User.Identity?.Name ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
+
 // Liveness + database reachability for compose/Kubernetes probes
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -123,6 +144,9 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
+// After UseRouting (required for [EnableRateLimiting] endpoint policies) and
+// after UseAuthentication so the per-user partition key sees the identity.
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllerRoute(
