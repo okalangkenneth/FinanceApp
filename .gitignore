@@ -367,3 +367,12 @@ FodyWeavers.xsd
 
 # Local development settings (holds secrets such as Anthropic:ApiKey — never commit)
 **/appsettings.Development.json
+
+# Bare-mirror clone purged from history in Phase 1E — must never be re-committed
+FinanceApp.git/
+
+# docker compose env file (real API keys live here; ship .env.example instead)
+.env
+
+# git bundle backups (pre-rewrite history)
+*.bundle
