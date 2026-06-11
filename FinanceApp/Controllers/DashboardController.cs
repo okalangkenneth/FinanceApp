@@ -31,7 +31,7 @@ namespace FinanceApp.Controllers
             }
 
             var transactions = await _context.Transactions
-                .Where(t => t.UserId == userId && t.Date.Month == DateTime.Now.Month && t.Date.Year == DateTime.Now.Year)
+                .Where(t => t.UserId == userId && t.Date.Month == DateTime.UtcNow.Month && t.Date.Year == DateTime.UtcNow.Year)
                 .ToListAsync();
 
             var financialGoals = await _context.FinancialGoals

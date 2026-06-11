@@ -1,5 +1,3 @@
-using DinkToPdf;
-using DinkToPdf.Contracts;
 using FinanceApp.Data;
 using FinanceApp.Models;
 using FinanceApp.Services.IEmailService;
@@ -7,10 +5,14 @@ using FinanceApp.Services.SpendingAnalysis;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.InteropServices;
-using System.Runtime.Loader;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// QuestPDF Community license: free for individuals and for organizations with
+// less than $1M USD annual gross revenue (https://www.questpdf.com/license/).
+// This is a personal portfolio project, which falls within the Community tier.
+QuestPDF.Settings.License = LicenseType.Community;
 
 // Heroku-era PORT contract preserved as-is; port consolidation is Phase 3
 builder.WebHost.ConfigureKestrel(options =>
@@ -18,16 +20,11 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenAnyIP(int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "10000"));
 });
 
+// PostgreSQL everywhere — dev and prod use the same provider so one
+// migration history serves both (the old SQL Server dev branch had none)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    if (builder.Environment.IsDevelopment())
-    {
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-    }
-    else
-    {
-        options.UseNpgsql(builder.Configuration.GetConnectionString("HerokuConnection"));
-    }
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -80,19 +77,6 @@ builder.Services.AddHttpClient<ISpendingAnalysisService, AnthropicSpendingAnalys
 }).AddStandardResilienceHandler();
 
 builder.Services.AddAuthorization();
-
-// DinkToPdf native library configuration (DinkToPdf is replaced in Phase 1D)
-AssemblyLoadContext.Default.ResolvingUnmanagedDll += (assembly, libraryName) =>
-{
-    if (libraryName.StartsWith("libwkhtmltox"))
-    {
-        string arch = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
-        string libPath = Path.Combine(Directory.GetCurrentDirectory(), "wkhtmltox", arch, "libwkhtmltox");
-        return NativeLibrary.Load(libPath);
-    }
-    return IntPtr.Zero;
-};
-builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 
 var app = builder.Build();
 

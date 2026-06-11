@@ -1,18 +1,16 @@
-﻿using DinkToPdf;
+using ClosedXML.Excel;
 using FinanceApp.Data;
 using FinanceApp.Models;
 using FinanceApp.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using OfficeOpenXml;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using System;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FinanceApp.Controllers
 {
@@ -20,113 +18,120 @@ namespace FinanceApp.Controllers
     public class ExportController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly ICompositeViewEngine _viewEngine;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public ExportController(ApplicationDbContext context, ICompositeViewEngine viewEngine, UserManager<ApplicationUser> userManager)
+        public ExportController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
-            _viewEngine = viewEngine;
             _userManager = userManager;
         }
 
         public IActionResult ExportTransactionsReportExcel()
         {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
             // Retrieve data for the report — current user's rows only
             var userId = _userManager.GetUserId(User);
             var transactions = _context.Transactions
                 .Where(t => t.UserId == userId)
                 .ToList();
-            var viewModel = new TransactionsReportViewModel
-            {
-                Transactions = transactions
-            };
 
-            // Create an Excel package
-            using var package = new ExcelPackage();
-            var worksheet = package.Workbook.Worksheets.Add("TransactionsReport");
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("TransactionsReport");
 
             // Add header row
-            worksheet.Cells[1, 1].Value = "Date";
-            worksheet.Cells[1, 2].Value = "Description";
-            worksheet.Cells[1, 3].Value = "Amount";
-            worksheet.Cells[1, 4].Value = "Type";
-            worksheet.Cells[1, 5].Value = "Category";
+            worksheet.Cell(1, 1).Value = "Date";
+            worksheet.Cell(1, 2).Value = "Description";
+            worksheet.Cell(1, 3).Value = "Amount";
+            worksheet.Cell(1, 4).Value = "Type";
+            worksheet.Cell(1, 5).Value = "Category";
 
             // Add data rows
             int row = 2;
-            foreach (var transaction in viewModel.Transactions)
+            foreach (var transaction in transactions)
             {
-                worksheet.Cells[row, 1].Value = transaction.Date;
-                worksheet.Cells[row, 2].Value = transaction.Description;
-                worksheet.Cells[row, 3].Value = transaction.Amount;
-                worksheet.Cells[row, 4].Value = transaction.Type.ToString();
-                worksheet.Cells[row, 5].Value = transaction.Category.ToString();
+                worksheet.Cell(row, 1).Value = transaction.Date;
+                worksheet.Cell(row, 2).Value = transaction.Description;
+                worksheet.Cell(row, 3).Value = transaction.Amount;
+                worksheet.Cell(row, 4).Value = transaction.Type.ToString();
+                worksheet.Cell(row, 5).Value = transaction.Category.ToString();
                 row++;
             }
 
-            // Set the content type and file name
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+
             string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             string fileName = "TransactionsReport.xlsx";
-
-            // Return the Excel file as an attachment
-            return File(package.GetAsByteArray(), contentType, fileName);
+            return File(stream.ToArray(), contentType, fileName);
         }
 
-
-        public async Task<IActionResult> ExportTransactionsReportPdfAsync()
+        public IActionResult ExportTransactionsReportPdf()
         {
             // Retrieve data for the report — current user's rows only
             var userId = _userManager.GetUserId(User);
             var transactions = _context.Transactions
                 .Where(t => t.UserId == userId)
+                .OrderBy(t => t.Date)
                 .ToList();
-            var viewModel = new TransactionsReportViewModel
+
+            byte[] pdfBytes = Document.Create(document =>
             {
-                Transactions = transactions
-            };
+                document.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(36);
+                    page.DefaultTextStyle(style => style.FontSize(10));
 
-            // Render the view as an HTML string
-            string viewHtml = await RenderViewAsString("~/Views/Reports/TransactionsReport.cshtml", viewModel);
+                    page.Header()
+                        .Text("Transactions Report")
+                        .FontSize(18)
+                        .SemiBold();
 
+                    page.Content().PaddingVertical(12).Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.ConstantColumn(70);   // Date
+                            columns.RelativeColumn(3);    // Description
+                            columns.ConstantColumn(80);   // Amount
+                            columns.ConstantColumn(60);   // Type
+                            columns.ConstantColumn(90);   // Category
+                        });
 
+                        table.Header(header =>
+                        {
+                            header.Cell().Element(HeaderCell).Text("Date");
+                            header.Cell().Element(HeaderCell).Text("Description");
+                            header.Cell().Element(HeaderCell).AlignRight().Text("Amount");
+                            header.Cell().Element(HeaderCell).Text("Type");
+                            header.Cell().Element(HeaderCell).Text("Category");
+                        });
 
-            // Convert the HTML string to a PDF
-            var pdfConverter = new SynchronizedConverter(new PdfTools());
-            var pdfDocument = new HtmlToPdfDocument()
-            {
-                GlobalSettings = {
-            ColorMode = ColorMode.Color,
-            Orientation = Orientation.Portrait,
-            PaperSize = PaperKind.A4
-        },
-                Objects = { new ObjectSettings { HtmlContent = viewHtml } }
-            };
-            byte[] pdfBytes = pdfConverter.Convert(pdfDocument);
+                        foreach (var transaction in transactions)
+                        {
+                            table.Cell().Element(BodyCell).Text(transaction.Date.ToString("yyyy-MM-dd"));
+                            table.Cell().Element(BodyCell).Text(transaction.Description);
+                            table.Cell().Element(BodyCell).AlignRight().Text(transaction.Amount.ToString("N2"));
+                            table.Cell().Element(BodyCell).Text(transaction.Type.ToString());
+                            table.Cell().Element(BodyCell).Text(transaction.Category.ToString());
+                        }
+                    });
 
-            // Return the PDF as an attachment
-            string fileName = "TransactionsReport.pdf";
-            string contentType = "application/pdf";
-            return File(pdfBytes, contentType, fileName);
+                    page.Footer().AlignCenter().Text(text =>
+                    {
+                        text.CurrentPageNumber();
+                        text.Span(" / ");
+                        text.TotalPages();
+                    });
+                });
+            }).GeneratePdf();
+
+            return File(pdfBytes, "application/pdf", "TransactionsReport.pdf");
+
+            static IContainer HeaderCell(IContainer container) =>
+                container.BorderBottom(1).PaddingVertical(4).DefaultTextStyle(style => style.SemiBold());
+
+            static IContainer BodyCell(IContainer container) =>
+                container.BorderBottom(0.5f).PaddingVertical(3);
         }
-        private async Task<string> RenderViewAsString(string viewName, object model)
-        {
-            ViewData.Model = model;
-            using var writer = new StringWriter();
-            var viewResult = _viewEngine.GetView(null, viewName, false);
-            if (!viewResult.Success)
-            {
-                throw new InvalidOperationException($"Could not find view: {viewName}");
-            }
-            var viewContext = new ViewContext(ControllerContext, viewResult.View, ViewData, TempData, writer, new HtmlHelperOptions());
-            await viewResult.View.RenderAsync(viewContext);
-            return writer.GetStringBuilder().ToString();
-        }
-
-
-
-
     }
 }

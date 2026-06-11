@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using FinanceApp.Models;
 
 namespace FinanceApp.Data
@@ -18,24 +19,31 @@ namespace FinanceApp.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Get the current database provider
-            var provider = this.Database.ProviderName;
+            // UTC strategy: all DateTimes are stored as timestamptz in UTC.
+            // Npgsql 6+ rejects non-UTC kinds for timestamptz, but form model
+            // binding produces Kind=Unspecified — these are date-valued user
+            // inputs, so they are interpreted as UTC rather than shifted.
+            var utcDateTimeConverter = new ValueConverter<DateTime, DateTime>(
+                v => v.Kind == DateTimeKind.Utc
+                    ? v
+                    : v.Kind == DateTimeKind.Local
+                        ? v.ToUniversalTime()
+                        : DateTime.SpecifyKind(v, DateTimeKind.Utc),
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 foreach (var property in entityType.GetProperties())
                 {
-                    if (property.ClrType == typeof(string))
+                    if (property.ClrType == typeof(DateTime))
                     {
-                        // Apply data type based on the provider
-                        if (provider == "Microsoft.EntityFrameworkCore.SqlServer")
-                        {
-                            property.SetColumnType("nvarchar(MAX)");
-                        }
-                        else if (provider == "Npgsql.EntityFrameworkCore.PostgreSQL")
-                        {
-                            property.SetColumnType("text");
-                        }
+                        property.SetValueConverter(utcDateTimeConverter);
+                    }
+                    else if (property.ClrType == typeof(decimal))
+                    {
+                        // Money rule: explicit precision on every monetary column
+                        property.SetPrecision(18);
+                        property.SetScale(2);
                     }
                 }
             }
@@ -54,4 +62,3 @@ namespace FinanceApp.Data
         }
     }
 }
-

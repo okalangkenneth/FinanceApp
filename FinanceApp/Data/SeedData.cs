@@ -1,4 +1,4 @@
-﻿using FinanceApp.Models;
+using FinanceApp.Models;
 using System;
 using System.Linq;
 
@@ -18,7 +18,7 @@ namespace FinanceApp.Data
                         Amount = 200,
                         Category = TransactionCategory.Food,
                         Type = TransactionType.Expense,
-                        Date = DateTime.Now.AddDays(-10),
+                        Date = DateTime.UtcNow.AddDays(-10),
                         Description = "Grocery shopping at the supermarket"
                     },
                     new Transaction
@@ -27,7 +27,7 @@ namespace FinanceApp.Data
                         Amount = 1000,
                         Category = TransactionCategory.Other,
                         Type = TransactionType.Income,
-                        Date = DateTime.Now.AddDays(-15),
+                        Date = DateTime.UtcNow.AddDays(-15),
                         Description = "Monthly salary payment"
                     }
 
@@ -47,7 +47,7 @@ namespace FinanceApp.Data
                         Description = "Save for a down payment on a new car",
                         TargetAmount = 5000,
                         
-                        EndDate = DateTime.Now.AddYears(1)
+                        EndDate = DateTime.UtcNow.AddYears(1)
                     },
                     new FinancialGoal
                     {
@@ -56,7 +56,7 @@ namespace FinanceApp.Data
                         Description = "Save for unexpected expenses",
                         TargetAmount = 10000,
                         
-                        EndDate = DateTime.Now.AddYears(2)
+                        EndDate = DateTime.UtcNow.AddYears(2)
                     }
                 // Add more sample financial goals here
                 );
