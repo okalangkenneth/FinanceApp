@@ -142,6 +142,9 @@ ABSENT from the tree — PDF export crashes at runtime, not just unmaintained).
   `.env` is NOT auto-loaded by the .NET runtime
 - Only modify what was explicitly requested; ask if <90% confident
 - Never `docker restart` — always `docker compose up -d --build [service]`
+- NO AI attribution anywhere: no "Co-Authored-By: Claude" trailers, no
+  "Generated with Claude Code" lines in commits, PRs, or docs. The global
+  settings.json attribution setting enforces this; never override it.
 
 ## Tech Stack (target state)
 - .NET 8 (net8.0), ASP.NET Core MVC, minimal hosting model
@@ -187,14 +190,24 @@ ABSENT from the tree — PDF export crashes at runtime, not just unmaintained).
   in docs/PHASE0-AUDIT.md; seed list verified (16 confirmed, item 8 corrected);
   3 CRITICAL security findings (anonymous data export, 2× IDOR); working tree
   reconnected to GitHub (no .git existed — only the FinanceApp.git bare mirror)
+- **Phase 1A–1D (2026-06-10)** — IDOR/auth fixes + report classification (1A);
+  .NET 8 upgrade, dead dependency purge (1B); Anthropic Messages API replaces
+  dead OpenAI integration (1C); PostgreSQL-only data layer, QuestPDF + ClosedXML
+  exports (1D). 18/18 tests pass.
+- **Phase 1E: history rewrite (2026-06-11)** — git filter-repo on all 143
+  commits: FinanceApp.git/ purged from history (audit item 3) AND AI attribution
+  trailers stripped from historical messages in the same rewrite. Force-pushed
+  (branch protection allow_force_pushes temporarily enabled via API, then
+  restored). Verified: 0 attribution lines in history, 0 FinanceApp.git objects,
+  GitHub contributors = okalangkenneth only. New HEAD: 01cea70 (hashes changed
+  repo-wide). Pre-rewrite backup: ../FinanceApp-prerewrite.bundle + the on-disk
+  FinanceApp.git mirror (both hold OLD history — delete once confident).
 
 ### 🔨 IN PROGRESS
-- Awaiting user sign-off on two Phase 1 decisions (recommendations in
-  docs/PHASE0-AUDIT.md §4): AI replacement → Anthropic API direct;
-  demo strategy → recorded demo + screenshots
+- Phase 1 wrap-up: remaining Phase 1 audit items, then Phase 2 Dockerization
 
 ### ❌ REMAINING
-- Phases 1–7 per pipeline above
+- Phases 2–7 per pipeline above
 
 ## Correction Log
 When corrected, append to `docs/claude-corrections.md` (Mistake / Correction /
