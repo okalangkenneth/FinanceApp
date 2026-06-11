@@ -1,0 +1,24 @@
+@model FinanceApp.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <dl class="row">
+            <dt class="col-sm-4">Name</dt>
+            <dd class="col-sm-8">@Model.FirstName @Model.LastName</dd>
+
+            <dt class="col-sm-4">Email</dt>
+            <dd class="col-sm-8">@Model.Email</dd>
+
+            <dt class="col-sm-4">Email confirmed</dt>
+            <dd class="col-sm-8">@(Model.EmailConfirmed ? "Yes" : "No")</dd>
+
+            <dt class="col-sm-4">Preferred currency</dt>
+            <dd class="col-sm-8">@Model.PreferredCurrency</dd>
+        </dl>
+    </div>
+</div>

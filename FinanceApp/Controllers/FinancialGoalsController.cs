@@ -35,13 +35,13 @@ namespace FinanceApp.Controllers
         // GET: FinancialGoals/Create
         public IActionResult Create()
         {
-            return View(new UpdateFinancialGoalViewModel());
+            return View(new CreateFinancialGoalViewModel());
         }
 
         // POST: FinancialGoals/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(UpdateFinancialGoalViewModel viewModel)
+        public async Task<IActionResult> Create(CreateFinancialGoalViewModel viewModel)
         {
             if (ModelState.IsValid)
             {

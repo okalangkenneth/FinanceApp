@@ -8,9 +8,6 @@ namespace FinanceApp.Models.ViewModels
         public List<FinancialGoal> FinancialGoals { get; set; }
         public decimal AccountBalance { get; set; }
         public List<SpendingAnalysis> SpendingAnalysis { get; set; }
-        public List<CategorySpending> CategorySpending { get; set; } = new List<CategorySpending>();
-
-
     }
 
 }

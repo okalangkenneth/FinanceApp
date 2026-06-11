@@ -75,7 +75,9 @@ namespace FinanceApp.Controllers
             }
         }
 
-        public async Task<List<Transaction>> GetTransactionsForUser()
+        // Private: this is a query helper, not an endpoint — as a public
+        // method it was routable and served the user's raw transaction list.
+        private async Task<List<Transaction>> GetTransactionsForUser()
         {
             var userId = _userManager.GetUserId(User);
             return await _context.Transactions

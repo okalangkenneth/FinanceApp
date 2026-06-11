@@ -45,8 +45,6 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
 
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddRazorPages();
-
 // The old Startup configured unnamed CookieAuthenticationOptions, which the
 // Identity application cookie (a named scheme) never read — these settings
 // were silently inert. ConfigureApplicationCookie makes them take effect.
@@ -152,7 +150,6 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-app.MapRazorPages();
 app.MapHealthChecks("/health");
 
 app.Run();
