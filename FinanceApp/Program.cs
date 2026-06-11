@@ -2,8 +2,8 @@ using DinkToPdf;
 using DinkToPdf.Contracts;
 using FinanceApp.Data;
 using FinanceApp.Models;
-using FinanceApp.Services;
 using FinanceApp.Services.IEmailService;
+using FinanceApp.Services.SpendingAnalysis;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -65,8 +65,19 @@ builder.Services.ConfigureApplicationCookie(options =>
 string sendGridApiKey = builder.Configuration["SendGrid:ApiKey"];
 builder.Services.AddSingleton<IEmailService>(new SendGridEmailService(sendGridApiKey));
 
-builder.Services.AddHttpClient<OpenAIService>();
-builder.Services.AddSingleton(x => new OpenAIService(x.GetRequiredService<HttpClient>(), builder.Configuration["OpenAI:ApiKey"], x.GetRequiredService<ILogger<OpenAIService>>()));
+// Typed client via IHttpClientFactory (replaces the old AddHttpClient +
+// singleton-capturing-HttpClient double registration). Standard resilience
+// handler supplies retry/backoff for 429/5xx, honoring Retry-After.
+builder.Services.AddHttpClient<ISpendingAnalysisService, AnthropicSpendingAnalysisService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.anthropic.com");
+    client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+    string anthropicApiKey = builder.Configuration["Anthropic:ApiKey"];
+    if (!string.IsNullOrEmpty(anthropicApiKey))
+    {
+        client.DefaultRequestHeaders.Add("x-api-key", anthropicApiKey);
+    }
+}).AddStandardResilienceHandler();
 
 builder.Services.AddAuthorization();
 

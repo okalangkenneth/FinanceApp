@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Local development settings (holds secrets such as Anthropic:ApiKey — never commit)
+**/appsettings.Development.json

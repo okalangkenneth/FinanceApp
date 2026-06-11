@@ -1,37 +1,37 @@
-﻿using FinanceApp.Services;
+using FinanceApp.Data;
+using FinanceApp.Models;
+using FinanceApp.Services.SpendingAnalysis;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using FinanceApp.Models;
-using FinanceApp.Data;
-using System.Linq;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using FinanceApp.Exceptions;
-using System;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
-using System.Net.Http;
 
 namespace FinanceApp.Controllers
 {
+    [Authorize]
     public class SpendingAnalysisController : Controller
     {
-        private readonly OpenAIService _openAIService;
+        private readonly ISpendingAnalysisService _spendingAnalysisService;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ILogger<AccountController> _logger;
-        private readonly IConfiguration _config;
+        private readonly ILogger<SpendingAnalysisController> _logger;
 
-
-        public SpendingAnalysisController(OpenAIService openAIService, ApplicationDbContext context, UserManager<ApplicationUser> userManager, ILogger<AccountController> logger, IConfiguration config)
+        public SpendingAnalysisController(
+            ISpendingAnalysisService spendingAnalysisService,
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            ILogger<SpendingAnalysisController> logger)
         {
-            _openAIService = openAIService;
+            _spendingAnalysisService = spendingAnalysisService;
             _context = context;
             _userManager = userManager;
             _logger = logger;
-            _config = config;
         }
 
         private string CreatePromptFromTransactions(List<Transaction> transactions)
@@ -49,29 +49,16 @@ namespace FinanceApp.Controllers
 
         public async Task<IActionResult> Analyze()
         {
-            // Fetch the transactions data
             List<Transaction> transactions = await GetTransactionsForUser();
 
-            // Prepare the prompt (input data) for the GPT model
             string prompt = CreatePromptFromTransactions(transactions);
-
-            // Get the API key and endpoint from the configuration
-            string apiKey = _config.GetValue<string>("OpenAI:ApiKey");
-            string endpoint = _config.GetValue<string>("OpenAI:Endpoint");
 
             try
             {
-                // Call the OpenAIService to analyze the spending habits
-                string analysisResult = await _openAIService.AnalyzeSpendingHabitsAsync(prompt, apiKey, endpoint);
+                string analysisResult = await _spendingAnalysisService.AnalyzeSpendingHabitsAsync(prompt, HttpContext.RequestAborted);
 
-                // Use the analysisResult to display insights to the user
                 ViewBag.AnalysisResult = analysisResult;
-                return View("Analyze"); // Return the Analyze view
-            }
-            catch (CreditExhaustedException ex)
-            {
-                _logger.LogError(ex, "An error occurred while analyzing spending habits.");
-                return RedirectToAction("Error", new { message = "Your subscription has reached its limit or payment is required. Please upgrade your plan or contact support." });
+                return View("Analyze");
             }
             catch (HttpRequestException ex)
             {
@@ -100,29 +87,16 @@ namespace FinanceApp.Controllers
             return View();
         }
 
-
         public async Task<IActionResult> Recommendations()
         {
-            // Prepare the prompt (input data) for the GPT model
             string prompt = "Provide some recommendations for better financial management.";
-
-            // Get the API key and endpoint from the configuration
-            string apiKey = _config.GetValue<string>("OpenAI:ApiKey");
-            string endpoint = _config.GetValue<string>("OpenAI:Endpoint");
 
             try
             {
-                // Call the OpenAIService to generate recommendations
-                string recommendations = await _openAIService.GenerateRecommendationsAsync(prompt, apiKey, endpoint);
+                string recommendations = await _spendingAnalysisService.GenerateRecommendationsAsync(prompt, HttpContext.RequestAborted);
 
-                // Use the recommendations to display to the user
                 ViewBag.Recommendations = recommendations;
-                return View("Recommendations"); // Return the Recommendations view
-            }
-            catch (CreditExhaustedException ex)
-            {
-                _logger.LogError(ex, "An error occurred while generating recommendations.");
-                return RedirectToAction("Error", new { message = "Your subscription has reached its limit or payment is required. Please upgrade your plan or contact support." });
+                return View("Recommendations");
             }
             catch (HttpRequestException ex)
             {
@@ -136,12 +110,5 @@ namespace FinanceApp.Controllers
                 return RedirectToAction("Error");
             }
         }
-
-
-
-
-
     }
 }
-
-
