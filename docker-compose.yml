@@ -1,0 +1,59 @@
+services:
+  app:
+    build: .
+    ports:
+      # Host 8888 (free locally; 5000-5004/5050 are occupied by other projects).
+      # Container side is 8080: Program.cs binds ListenAnyIP(PORT ?? 10000), so
+      # PORT below — not the aspnet image's ASPNETCORE_HTTP_PORTS default —
+      # decides the listen port. Port consolidation is a Phase 3 item.
+      - "8888:8080"
+    environment:
+      PORT: "8080"
+      # Blank out the aspnet:8.0 image default; Program.cs configures Kestrel
+      # explicitly, and leaving both set logs an "Overriding address" warning.
+      ASPNETCORE_HTTP_PORTS: ""
+      # Dev stack: developer exception page, no HSTS/https redirect (the
+      # container has no TLS endpoint; TLS termination arrives with Phase 4).
+      ASPNETCORE_ENVIRONMENT: "Development"
+      # Service name + container port, NOT localhost:5434 — that mapping is
+      # only for host-side `dotnet run` (see appsettings.json).
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=financeapp;Username=financeapp;Password=financeapp_dev"
+      # Real keys come from the gitignored .env next to this file (compose
+      # reads .env automatically; the .NET runtime itself never loads it).
+      Anthropic__ApiKey: "${ANTHROPIC_API_KEY:-}"
+      SendGrid__ApiKey: "${SENDGRID_API_KEY:-}"
+      # Dev convenience: apply EF migrations on startup (see Program.cs).
+      # Production would run migrations as a dedicated job, not in-process.
+      RUN_MIGRATIONS: "true"
+    volumes:
+      # Persist DataProtection keys so auth cookies and antiforgery tokens
+      # survive container recreation (and the startup warning goes away).
+      # Keys are stored unencrypted inside this local volume — fine for the
+      # dev stack; production key protection is a Phase 4 concern.
+      - dpkeys:/home/app/.aspnet/DataProtection-Keys
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      # Same dev credentials as appsettings.json (decided in Phase 1D — local
+      # dev login, not a secret), so host-side `dotnet run` hits this container.
+      POSTGRES_USER: financeapp
+      POSTGRES_PASSWORD: financeapp_dev
+      POSTGRES_DB: financeapp
+    ports:
+      # 5434 on the host because 5433 is occupied by another project's PostgreSQL.
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U financeapp -d financeapp"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
+  dpkeys:

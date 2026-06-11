@@ -19,6 +19,17 @@ FinanceAI stands out with its unique integration of OpenAI services. This advanc
 
 In addition, FinanceAI leverages GitHub Actions for continuous integration and deployment, ensuring the application is always in a releasable state and facilitating automatic deployment to Heroku.
 
+## **Run locally**
+
+Requires Docker.
+
+```bash
+cp .env.example .env    # optionally add your API keys; the app runs without them
+docker compose up
+```
+
+The app starts at http://localhost:8888 with PostgreSQL alongside it; the database schema is migrated automatically on first start.
+
 ## **Demonstration**
 I am excited to offer a live demo of my application for those interested in getting a firsthand look! This demo, hosted on Heroku, showcases the registration and login processes.
 

@@ -60,7 +60,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 string sendGridApiKey = builder.Configuration["SendGrid:ApiKey"];
-builder.Services.AddSingleton<IEmailService>(new SendGridEmailService(sendGridApiKey));
+builder.Services.AddSingleton<IEmailService>(sp =>
+    new SendGridEmailService(sendGridApiKey, sp.GetRequiredService<ILogger<SendGridEmailService>>()));
 
 // Typed client via IHttpClientFactory (replaces the old AddHttpClient +
 // singleton-capturing-HttpClient double registration). Standard resilience
@@ -78,7 +79,25 @@ builder.Services.AddHttpClient<ISpendingAnalysisService, AnthropicSpendingAnalys
 
 builder.Services.AddAuthorization();
 
+// Liveness + database reachability for compose/Kubernetes probes
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection"));
+
 var app = builder.Build();
+
+// Dev-stack convenience: docker-compose sets RUN_MIGRATIONS=true so the schema
+// is created/updated on startup. Production runs migrations as a dedicated
+// job before rollout (wired in Phases 4/5), never in-process.
+if (string.Equals(Environment.GetEnvironmentVariable("RUN_MIGRATIONS"), "true", StringComparison.OrdinalIgnoreCase))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var pending = db.Database.GetPendingMigrations().ToList();
+    app.Logger.LogInformation("[Program] RUN_MIGRATIONS=true, applying {Count} pending migration(s): {Migrations}",
+        pending.Count, string.Join(", ", pending));
+    db.Database.Migrate();
+    app.Logger.LogInformation("[Program] Migrations applied");
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -92,7 +111,13 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Only outside Development: the local docker-compose stack serves plain HTTP
+// (no TLS endpoint), and redirecting with no known https port just logs a
+// warning on every cold start. TLS termination is a Phase 4 concern.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -104,5 +129,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
+app.MapHealthChecks("/health");
 
 app.Run();

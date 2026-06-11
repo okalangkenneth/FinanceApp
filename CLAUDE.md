@@ -203,11 +203,33 @@ ABSENT from the tree — PDF export crashes at runtime, not just unmaintained).
   repo-wide). Pre-rewrite backup: ../FinanceApp-prerewrite.bundle + the on-disk
   FinanceApp.git mirror (both hold OLD history — delete once confident).
 
+- **Phase 2: Dockerization (2026-06-11)** — docker-compose stack (app 8888:8080
+  + postgres:16-alpine 5434:5432, pg_isready healthcheck, named volumes for
+  pgdata and DataProtection keys). Decisions: (a) migrations apply in-process
+  on startup gated by RUN_MIGRATIONS=true (dev only; production gets a
+  dedicated migration job in Phases 4/5) — first live `Migrate()` applied both
+  migrations cleanly, schema verified numeric(18,2) + timestamptz; (b) Debian
+  aspnet:8.0 base KEPT — QuestPDF 2026.x bundles its own natives
+  (libQuestPdfSkia/libqpdf), ldd shows zero missing deps, no apt packages
+  needed; image 514MB; (c) non-root USER app — DataProtection key dir must be
+  mkdir+chown'd in the image BEFORE the named volume first mounts, else the
+  mountpoint is root-owned and key writes fail; (d) container port: Program.cs
+  Kestrel override wins over ASPNETCORE_HTTP_PORTS, so compose sets PORT=8080
+  and blanks ASPNETCORE_HTTP_PORTS (kills the "Overriding address" warning);
+  (e) UseHttpsRedirection gated out of Development (compose stack is plain
+  HTTP; TLS is Phase 4); (f) SendGridEmailService skips send + logs warning
+  when key missing (registration 500'd after creating the user row);
+  (g) /health endpoint via AspNetCore.HealthChecks.NpgSql 9.0.0 (Npgsql stays
+  8.0.6). Smoke-tested: /health Healthy, UI registration → AspNetUsers row,
+  clean startup logs, 18/18 host tests. Secrets: .env gitignored (ship
+  .env.example); appsettings.Development.json added to .dockerignore so
+  COPY . . can't leak it into images.
+
 ### 🔨 IN PROGRESS
-- Phase 1 wrap-up: remaining Phase 1 audit items, then Phase 2 Dockerization
+- Nothing — Phase 3 (service wiring & configuration hygiene) is next
 
 ### ❌ REMAINING
-- Phases 2–7 per pipeline above
+- Phases 3–7 per pipeline above
 
 ## Correction Log
 When corrected, append to `docs/claude-corrections.md` (Mistake / Correction /
