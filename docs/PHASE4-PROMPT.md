@@ -37,3 +37,35 @@ different portfolio project; keep this one kubectl-native).
    Small code change + test, include in this phase's commit.
 6. app Service: type LoadBalancer, port 8889 → 8080 (Docker Desktop maps
    LoadBalancer to localhost; 8888 stays with the compose stack)
+
+## Step 3 — Secrets & config (NEVER committed)
+1. k8s/secret.example.yaml committed with placeholder names only; real secret
+   created imperatively and documented in a comment:
+   kubectl -n financeapp create secret generic financeapp-secrets
+     --from-literal=ConnectionStrings__DefaultConnection=...
+     --from-literal=Anthropic__ApiKey=... (etc.)
+2. ConfigMap for non-secret env: ASPNETCORE_ENVIRONMENT, RUN_MIGRATIONS=false,
+   SEED_DEMO_DATA=true (demo data is the point of this cluster), Serilog level
+3. Verify .gitignore: any file matching k8s/*secret*.yaml except the example
+
+## Step 4 — Deploy & verify (show all outputs)
+1. kubectl apply in numbered order; migration Job runs to Completion BEFORE
+   the app Deployment is applied — show `kubectl get jobs,pods -n financeapp`
+2. `kubectl rollout status deployment/financeapp -n financeapp`
+3. curl http://localhost:8889/health/ready → Healthy; /health/live → Healthy
+4. Real login against the seeded demo user via :8889, dashboard renders
+5. Kill the postgres pod, show that: liveness does NOT restart the app pod,
+   readiness marks it NotReady, and recovery is automatic when postgres
+   returns — this is the probe-split payoff, capture the output for the
+   Phase 6 demo material
+6. Compose stack on 8888 still works side-by-side (docker compose ps)
+
+## Step 5 — Wrap-up
+1. Update CLAUDE.md Build Progress: Phase 4 complete; record the migration
+   Job approach chosen (bundle vs app-image flag) and why; note the
+   single-replica DataProtection limitation as known debt
+2. docs/PHASE4-NOTES.md: one page — apply order, secret creation command
+   shape (no values), probe philosophy, how to tear down
+   (kubectl delete ns financeapp)
+3. Conventional commit; push after EVERY commit in this phase, not just the
+   last one (CLAUDE.md rule)
