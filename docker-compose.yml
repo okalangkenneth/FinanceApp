@@ -3,15 +3,10 @@ services:
     build: .
     ports:
       # Host 8888 (free locally; 5000-5004/5050 are occupied by other projects).
-      # Container side is 8080: Program.cs binds ListenAnyIP(PORT ?? 10000), so
-      # PORT below — not the aspnet image's ASPNETCORE_HTTP_PORTS default —
-      # decides the listen port. Port consolidation is a Phase 3 item.
+      # Container side is 8080: the aspnet:8.0 image's ASPNETCORE_HTTP_PORTS
+      # default — Program.cs no longer overrides Kestrel (Phase 3, item 34).
       - "8888:8080"
     environment:
-      PORT: "8080"
-      # Blank out the aspnet:8.0 image default; Program.cs configures Kestrel
-      # explicitly, and leaving both set logs an "Overriding address" warning.
-      ASPNETCORE_HTTP_PORTS: ""
       # Dev stack: developer exception page, no HSTS/https redirect (the
       # container has no TLS endpoint; TLS termination arrives with Phase 4).
       ASPNETCORE_ENVIRONMENT: "Development"
@@ -22,9 +17,14 @@ services:
       # reads .env automatically; the .NET runtime itself never loads it).
       Anthropic__ApiKey: "${ANTHROPIC_API_KEY:-}"
       SendGrid__ApiKey: "${SENDGRID_API_KEY:-}"
+      SendGrid__SenderEmail: "${SENDGRID_SENDER_EMAIL:-}"
       # Dev convenience: apply EF migrations on startup (see Program.cs).
       # Production would run migrations as a dedicated job, not in-process.
       RUN_MIGRATIONS: "true"
+      # Demo user + four months of sample data (see SeedData.cs). Seeding is
+      # skipped unless SEED_DEMO_PASSWORD is set in the gitignored .env.
+      SEED_DEMO_DATA: "true"
+      SeedDemo__Password: "${SEED_DEMO_PASSWORD:-}"
     volumes:
       # Persist DataProtection keys so auth cookies and antiforgery tokens
       # survive container recreation (and the startup warning goes away).

@@ -54,7 +54,6 @@ namespace FinanceApp.Tests
                 Category = category,
                 Date = date ?? new DateTime(2023, 1, 15),
                 Description = "test transaction",
-                PreferredCurrency = "USD",
                 Currency = Currency.USD
             };
         }

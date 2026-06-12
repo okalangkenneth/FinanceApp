@@ -176,6 +176,9 @@ ABSENT from the tree — PDF export crashes at runtime, not just unmaintained).
 ## Git Conventions
 - Default branch: **master**. Every Claude Code prompt for this repo ends with
   `git push origin master`.
+- **Push after EVERY sub-phase commit, not only at phase end** — usage limits
+  can kill a session at any moment; local-only commits are invisible to the
+  next session's remote-state checks (learned 2026-06-11, Phase 3 interruption)
 - Conventional commits; messages are public portfolio surface — keep descriptive
 - Never commit: appsettings.Development.json with secrets, .env, API keys
 - History surgery (FinanceApp.git purge) happens in Phase 1 with `git filter-repo`
@@ -225,11 +228,34 @@ ABSENT from the tree — PDF export crashes at runtime, not just unmaintained).
   .env.example); appsettings.Development.json added to .dockerignore so
   COPY . . can't leak it into images.
 
+- **Phase 3: service wiring & configuration hygiene (2026-06-11/12)** — three
+  commits: 3A (auth/abuse: EmailController deleted, [Authorize] + per-user
+  rate limiter 3/min on AI endpoints, generic login error + lockout, POST
+  logout), 3B (dead surface: HomeController.Dashboard, orphan Edit view,
+  Razor Pages LoginModel + phantom Identity route removed, logger/viewmodel
+  fixes, controller-views smoke test), 3C (options pattern AnthropicOptions/
+  SendGridOptions with ValidateOnStart, SendGrid singleton client + send-result
+  logging, Serilog console + request logging, port standardization, Progress
+  zero-guard, culture-based CurrencyHelper, Transaction.PreferredCurrency
+  dropped via new migration, demo seeding behind SEED_DEMO_DATA). Audit items
+  RESOLVED: 17, 21, 22, 23 (done in 1A), 24, 25, 28, 29, 30, 31, 32, 33, 34,
+  42, 43, 44, 46, 47. Notes: (a) port single-source-of-truth is now
+  ASPNETCORE_HTTP_PORTS (image default 8080; compose 8888:8080; launchSettings
+  8888; PORT env contract gone); (b) demo user demo@fintrak.example, password
+  via SeedDemo:Password from .env (SEED_DEMO_PASSWORD), 43 transactions +
+  3 goals, SEK story data for the Phase 6 demo; (c) USH formats via en-UG
+  culture (enum predates ISO UGX); (d) verified live: /health Healthy, demo
+  login → seeded dashboard, AI endpoint 429 on 4th request/min, 61/61 tests.
+  Deferred: TLS + production migration job (Phase 4/5), CI rewrite (Phase 5).
+  INTERRUPTION LESSON (2026-06-11): the 3C session died at the usage limit
+  with 3A/3B committed but unpushed — hence the new push-every-sub-phase rule
+  under Git Conventions.
+
 ### 🔨 IN PROGRESS
-- Nothing — Phase 3 (service wiring & configuration hygiene) is next
+- Nothing — Phase 4 (Kubernetes manifests) is next
 
 ### ❌ REMAINING
-- Phases 3–7 per pipeline above
+- Phases 4–7 per pipeline above
 
 ## Correction Log
 When corrected, append to `docs/claude-corrections.md` (Mistake / Correction /

@@ -24,8 +24,6 @@ namespace FinanceApp.Models
 
         public ApplicationUser ApplicationUser { get; set; }
 
-        public string PreferredCurrency { get; set; }
-
         public Currency Currency { get; set; }
     }
 

@@ -1,43 +1,56 @@
+using FinanceApp.Configuration;
+using FinanceApp.Services.IEmailService;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 using System.Threading.Tasks;
-using FinanceApp.Services.IEmailService;
 
 public class SendGridEmailService : IEmailService
 {
-    private readonly string _apiKey;
+    private readonly SendGridOptions _options;
     private readonly ILogger<SendGridEmailService> _logger;
 
-    public SendGridEmailService(string apiKey, ILogger<SendGridEmailService> logger)
+    // One client for the service lifetime (the old code built one per send);
+    // null when no API key is configured — sends are skipped with a warning
+    // so flows like registration still complete (Phase 2 decision).
+    private readonly ISendGridClient _client;
+
+    public SendGridEmailService(IOptions<SendGridOptions> options, ILogger<SendGridEmailService> logger)
     {
-        _apiKey = apiKey;
+        _options = options.Value;
         _logger = logger;
+        _client = string.IsNullOrEmpty(_options.ApiKey) ? null : new SendGridClient(_options.ApiKey);
     }
 
     public async Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
-        // SendGridClient throws ArgumentNullException on a missing key, which
-        // turned registration into a 500 after the user row was already
-        // created. Without a key, skip the send so the flow completes; the
-        // user just receives no confirmation email. Send-result handling and
-        // client reuse are Phase 3 (audit item 43).
-        if (string.IsNullOrEmpty(_apiKey))
+        if (_client == null)
         {
             _logger.LogWarning("[SendGridEmailService] SendGrid:ApiKey not configured — skipping email '{Subject}' to {Email}", subject, email);
             return;
         }
 
-        var client = new SendGridClient(_apiKey);
         var msg = new SendGridMessage()
         {
-            From = new EmailAddress("ken@backendinsight.com", "FinTrak"),
+            From = new EmailAddress(_options.SenderEmail, _options.SenderName),
             Subject = subject,
             PlainTextContent = htmlMessage,
             HtmlContent = htmlMessage
         };
         msg.AddTo(new EmailAddress(email));
 
-        await client.SendEmailAsync(msg);
+        var response = await _client.SendEmailAsync(msg);
+        if (!response.IsSuccessStatusCode)
+        {
+            string body = await response.Body.ReadAsStringAsync();
+            _logger.LogError(
+                "[SendGridEmailService] Send '{Subject}' to {Email} failed with {StatusCode}. Body: {Body}",
+                subject, email, (int)response.StatusCode, body);
+        }
+        else
+        {
+            _logger.LogInformation("[SendGridEmailService] Sent '{Subject}' to {Email}", subject, email);
+        }
     }
 }

@@ -4,8 +4,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+using FinanceApp.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace FinanceApp.Services.SpendingAnalysis
 {
@@ -17,8 +18,6 @@ namespace FinanceApp.Services.SpendingAnalysis
     /// </summary>
     public class AnthropicSpendingAnalysisService : ISpendingAnalysisService
     {
-        public const string DefaultModel = "claude-haiku-4-5-20251001";
-
         // Insights/recommendations are short prose; cap output deliberately
         // to bound per-request cost on the portfolio demo.
         private const int MaxTokens = 1024;
@@ -40,12 +39,12 @@ namespace FinanceApp.Services.SpendingAnalysis
 
         public AnthropicSpendingAnalysisService(
             HttpClient httpClient,
-            IConfiguration configuration,
+            IOptions<AnthropicOptions> options,
             ILogger<AnthropicSpendingAnalysisService> logger)
         {
             _httpClient = httpClient;
             _logger = logger;
-            _model = configuration["Anthropic:Model"] ?? DefaultModel;
+            _model = options.Value.Model;
         }
 
         public Task<string> AnalyzeSpendingHabitsAsync(string prompt, CancellationToken cancellationToken = default)

@@ -17,8 +17,9 @@ namespace FinanceApp.Models
         public ApplicationUser ApplicationUser { get; set; }
         public Currency Currency { get; set; }
 
-        // Add this property
-        public decimal Progress => CurrentAmount / TargetAmount * 100;
+        // Guard the zero target: decimal division throws, and a goal with no
+        // target has made no progress by definition (audit item 29).
+        public decimal Progress => TargetAmount == 0 ? 0 : CurrentAmount / TargetAmount * 100;
     }
 
     public enum GoalStatus

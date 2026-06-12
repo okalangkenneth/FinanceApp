@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 namespace FinanceApp.Helpers
 {
@@ -6,22 +6,26 @@ namespace FinanceApp.Helpers
     {
         public static string FormatAmount(decimal amount, string currency)
         {
-            CultureInfo cultureInfo;
-            switch (currency)
+            // Culture-based formatting gives the right symbol AND the right
+            // digit grouping/placement per currency. The old code formatted
+            // everything unknown — including SEK and USH — as GBP.
+            string cultureName = currency switch
             {
-                case "USD":
-                    cultureInfo = new CultureInfo("en-US");
-                    break;
-                case "EUR":
-                    cultureInfo = new CultureInfo("fr-FR");
-                    break;
-                default: // Default to GBP
-                    cultureInfo = new CultureInfo("en-GB");
-                    break;
+                "USD" => "en-US",
+                "GBP" => "en-GB",
+                "EUR" => "fr-FR",
+                "SEK" => "sv-SE",
+                "USH" => "en-UG", // Ugandan shilling; enum name predates the ISO code UGX
+                _ => null
+            };
+
+            if (cultureName == null)
+            {
+                // Unknown code: be honest rather than guessing a symbol.
+                return string.Create(CultureInfo.InvariantCulture, $"{amount:N2} {currency}");
             }
 
-            return string.Format(cultureInfo, "{0:C}", amount);
+            return string.Format(CultureInfo.GetCultureInfo(cultureName), "{0:C}", amount);
         }
     }
-
 }

@@ -1,3 +1,4 @@
+using FinanceApp.Configuration;
 using FinanceApp.Data;
 using FinanceApp.Models;
 using FinanceApp.Services.IEmailService;
@@ -6,21 +7,32 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using QuestPDF.Infrastructure;
+using Serilog;
+using Serilog.Events;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Serilog (portfolio convention): structured console logging, lean setup —
+// no file/ELK sinks here. Replaces the default Microsoft logging providers.
+builder.Host.UseSerilog((context, loggerConfiguration) => loggerConfiguration
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
 
 // QuestPDF Community license: free for individuals and for organizations with
 // less than $1M USD annual gross revenue (https://www.questpdf.com/license/).
 // This is a personal portfolio project, which falls within the Community tier.
 QuestPDF.Settings.License = LicenseType.Community;
 
-// Heroku-era PORT contract preserved as-is; port consolidation is Phase 3
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "10000"));
-});
+// Listen port: single source of truth is the standard ASPNETCORE_HTTP_PORTS /
+// ASPNETCORE_URLS contract (audit item 34). The aspnet:8.0 image defaults to
+// 8080 (compose maps 8888:8080); host dev runs on 8888 via launchSettings.
+// The Heroku-era PORT env var + ListenAnyIP override is gone.
 
 // PostgreSQL everywhere — dev and prod use the same provider so one
 // migration history serves both (the old SQL Server dev branch had none)
@@ -59,21 +71,33 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.HttpOnly = true;
 });
 
-string sendGridApiKey = builder.Configuration["SendGrid:ApiKey"];
-builder.Services.AddSingleton<IEmailService>(sp =>
-    new SendGridEmailService(sendGridApiKey, sp.GetRequiredService<ILogger<SendGridEmailService>>()));
+// Options pattern with validation at startup. Both API keys stay optional
+// (the app degrades gracefully without them — Phase 2 decision for SendGrid,
+// clear runtime error for Anthropic), but inconsistent config fails fast.
+builder.Services.AddOptions<SendGridOptions>()
+    .Bind(builder.Configuration.GetSection(SendGridOptions.SectionName))
+    .Validate(o => string.IsNullOrEmpty(o.ApiKey) || !string.IsNullOrEmpty(o.SenderEmail),
+        "SendGrid:SenderEmail is required when SendGrid:ApiKey is set.")
+    .ValidateOnStart();
+
+builder.Services.AddOptions<AnthropicOptions>()
+    .Bind(builder.Configuration.GetSection(AnthropicOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddSingleton<IEmailService, SendGridEmailService>();
 
 // Typed client via IHttpClientFactory (replaces the old AddHttpClient +
 // singleton-capturing-HttpClient double registration). Standard resilience
 // handler supplies retry/backoff for 429/5xx, honoring Retry-After.
-builder.Services.AddHttpClient<ISpendingAnalysisService, AnthropicSpendingAnalysisService>(client =>
+builder.Services.AddHttpClient<ISpendingAnalysisService, AnthropicSpendingAnalysisService>((sp, client) =>
 {
+    var anthropicOptions = sp.GetRequiredService<IOptions<AnthropicOptions>>().Value;
     client.BaseAddress = new Uri("https://api.anthropic.com");
     client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
-    string anthropicApiKey = builder.Configuration["Anthropic:ApiKey"];
-    if (!string.IsNullOrEmpty(anthropicApiKey))
+    if (!string.IsNullOrEmpty(anthropicOptions.ApiKey))
     {
-        client.DefaultRequestHeaders.Add("x-api-key", anthropicApiKey);
+        client.DefaultRequestHeaders.Add("x-api-key", anthropicOptions.ApiKey);
     }
 }).AddStandardResilienceHandler();
 
@@ -118,6 +142,15 @@ if (string.Equals(Environment.GetEnvironmentVariable("RUN_MIGRATIONS"), "true", 
     app.Logger.LogInformation("[Program] Migrations applied");
 }
 
+// Demo data for the dev stack and the Phase 6 recorded demo (audit item 17):
+// compose sets SEED_DEMO_DATA=true; the demo password comes from
+// SeedDemo:Password (gitignored .env), never from code.
+if (string.Equals(Environment.GetEnvironmentVariable("SEED_DEMO_DATA"), "true", StringComparison.OrdinalIgnoreCase))
+{
+    using var scope = app.Services.CreateScope();
+    await SeedData.SeedDemoAsync(scope.ServiceProvider, app.Logger);
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -138,6 +171,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 app.UseStaticFiles();
+
+// After UseStaticFiles so asset requests don't flood the request log
+app.UseSerilogRequestLogging();
 
 app.UseRouting();
 
