@@ -85,3 +85,9 @@ body {
     /* Add any additional styling for individual category items here */
 }
 
+/* AI response markdown rendering */
+.ai-response h2,
+.ai-response h3 { margin-top: 1rem; }
+.ai-response ul { padding-left: 1.5rem; }
+.ai-response strong { color: inherit; }
+

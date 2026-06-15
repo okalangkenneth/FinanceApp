@@ -20,7 +20,9 @@
         <div class="card mt-3">
             <div class="card-header">&#x2728; Your Personalised Recommendations</div>
             <div class="card-body">
-                <p style="white-space: pre-wrap; font-family: inherit;">@ViewBag.Recommendations</p>
+                <div class="ai-response">
+                    @Html.Raw(Markdig.Markdown.ToHtml((string)ViewBag.Recommendations))
+                </div>
             </div>
         </div>
     }
