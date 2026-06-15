@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  # Opt into Node.js 24 runners now; GitHub is forcing this from 2026-06-16.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   # ── Job 1: compile and test ─────────────────────────────────────────────────
   build-and-test:
@@ -68,14 +72,19 @@ jobs:
       - name: Start stack
         run: docker compose up -d --wait
 
-      # Retry up to 10 times (50 s total) to give the app time to apply EF
-      # migrations and complete startup before declaring the probe healthy.
+      # Poll /health/ready until the app is serving HTTP.
+      # --retry-all-errors is required (not just --retry-connrefused): Docker's
+      # port forwarding sends a TCP RST (ECONNRESET, curl exit 56) when the
+      # container is running but the app hasn't bound to port 8080 yet.
+      # ECONNRESET is not retried by --retry-connrefused (which only handles
+      # ECONNREFUSED / exit 7). --retry-all-errors covers both cases.
+      # 12 retries × 5 s = 60 s ceiling; migrations + seeding typically <30 s.
       - name: Wait for /health/ready
         run: >
           curl --fail
-          --retry 10
+          --retry 12
           --retry-delay 5
-          --retry-connrefused
+          --retry-all-errors
           http://localhost:8888/health/ready
 
       # Always capture logs — essential for diagnosing failures in CI.
