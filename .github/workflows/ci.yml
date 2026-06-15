@@ -61,7 +61,7 @@ jobs:
             'ANTHROPIC_API_KEY=dummy-ci-key' \
             'SENDGRID_API_KEY=' \
             'SENDGRID_SENDER_EMAIL=' \
-            'SEED_DEMO_PASSWORD=CiDemo1!' \
+            'SEED_DEMO_PASSWORD=ci-demo-only-not-a-real-secret' \
             > .env
 
       # --wait blocks until every service that declares a healthcheck is healthy.
