@@ -26,6 +26,11 @@ namespace FinanceApp.Controllers
             _userManager = userManager;
         }
 
+        public IActionResult Index()
+        {
+            return View();
+        }
+
         public IActionResult ExportTransactionsReportExcel()
         {
             // Retrieve data for the report — current user's rows only

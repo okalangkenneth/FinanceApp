@@ -62,16 +62,26 @@ namespace FinanceApp.Controllers
                 ViewBag.AnalysisResult = analysisResult;
                 return View("Analyze");
             }
+            catch (HttpRequestException ex) when (ex.Message.Contains("401") || ex.Message.Contains("authentication") || ex.Message.Contains("API key"))
+            {
+                _logger.LogWarning("Anthropic API key not configured or invalid.");
+                ViewBag.AnalysisResult = null;
+                ViewBag.ApiUnavailable = true;
+                return View("Analyze");
+            }
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "An error occurred while analyzing spending habits.");
-                return RedirectToAction("Error");
+                ViewBag.AnalysisResult = null;
+                ViewBag.ApiUnavailable = true;
+                return View("Analyze");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while analyzing spending habits.");
-                TempData["ErrorMessage"] = "An unexpected error occurred. Please try again later.";
-                return RedirectToAction("Error");
+                ViewBag.AnalysisResult = null;
+                ViewBag.ApiUnavailable = true;
+                return View("Analyze");
             }
         }
 
@@ -103,16 +113,12 @@ namespace FinanceApp.Controllers
                 ViewBag.Recommendations = recommendations;
                 return View("Recommendations");
             }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "An error occurred while generating recommendations.");
-                return RedirectToAction("Error");
-            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while generating recommendations.");
-                TempData["ErrorMessage"] = "An unexpected error occurred. Please try again later.";
-                return RedirectToAction("Error");
+                ViewBag.Recommendations = null;
+                ViewBag.ApiUnavailable = true;
+                return View("Recommendations");
             }
         }
     }

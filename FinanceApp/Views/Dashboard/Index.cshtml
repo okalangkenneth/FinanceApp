@@ -77,38 +77,47 @@
 
     <!-- Financial goals -->
     <div class="card mb-4">
-        <div class="card-header">
-            Financial Goals
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Financial Goals</span>
+            <a href="/FinancialGoals/Create" class="btn btn-sm btn-outline-primary">+ Add Goal</a>
         </div>
         <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Target Amount</th>
-                        <th>Current Amount</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Progress</th>
-                    </tr>
-                </thead>
-                <tbody>
+            @if (!Model.FinancialGoals.Any())
+            {
+                <p class="text-muted">No goals yet. <a href="/FinancialGoals/Create">Create your first goal.</a></p>
+            }
+            else
+            {
+                <div class="row">
                     @foreach (var goal in Model.FinancialGoals)
                     {
-                        <tr>
-                            <td>@goal.Title</td>
-                            <td>@goal.Description</td>
-                            <td>@goal.TargetAmount.ToString("C")</td>
-                            <td>@goal.CurrentAmount.ToString("C")</td>
-                            <td>@goal.StartDate.ToShortDateString()</td>
-                            <td>@goal.EndDate.ToShortDateString()</td>
-                            <td>@((goal.CurrentAmount / goal.TargetAmount) * 100)%</td>
-                        </tr>
+                        var pct = goal.TargetAmount > 0
+                            ? (int)Math.Min(100, Math.Round((double)(goal.CurrentAmount / goal.TargetAmount) * 100))
+                            : 0;
+                        var barClass = pct >= 100 ? "bg-success" : pct >= 50 ? "bg-info" : "bg-warning";
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">@goal.Title</h6>
+                                    <p class="card-text text-muted small">@goal.Description</p>
+                                    <div class="progress mb-2" style="height:12px;">
+                                        <div class="progress-bar @barClass" role="progressbar"
+                                             style="width:@(pct)%"
+                                             aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">
+                                        @goal.CurrentAmount.ToString("C") of @goal.TargetAmount.ToString("C")
+                                        (@pct%)
+                                        @if (pct >= 100) { <span class="badge badge-success">Completed ✓</span> }
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
                     }
-                </tbody>
-            </table>
-            <a href="/FinancialGoals" class="btn btn-primary">View All Financial Goals</a>
+                </div>
+            }
+            <a href="/FinancialGoals" class="btn btn-outline-primary btn-sm mt-2">View All Goals</a>
         </div>
     </div>
 

@@ -1,0 +1,42 @@
+@{
+    ViewData["Title"] = "Export Data";
+}
+
+<div class="container mt-4">
+    <h2>Export Your Data</h2>
+    <p class="text-muted">Download your transaction history in your preferred format.</p>
+
+    <div class="row mt-4">
+        <div class="col-md-5 mb-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">&#x1F4CA; Excel Spreadsheet</h5>
+                    <p class="card-text text-muted flex-grow-1">
+                        Download all your transactions as an Excel file (.xlsx).
+                        Open in Microsoft Excel, Google Sheets, or LibreOffice Calc
+                        for further analysis.
+                    </p>
+                    <a href="/Export/ExportTransactionsReportExcel"
+                       class="btn btn-success mt-3">
+                        Download Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 mb-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">&#x1F4C4; PDF Report</h5>
+                    <p class="card-text text-muted flex-grow-1">
+                        Download a formatted PDF report of all your transactions,
+                        ready for printing or sharing with your accountant.
+                    </p>
+                    <a href="/Export/ExportTransactionsReportPdf"
+                       class="btn btn-danger mt-3">
+                        Download PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
