@@ -1,6 +1,8 @@
 
 # FinanceAI: A Smart Personal Finance Manager Leveraging .NET Core, OpenAI, and GitHub Actions
 
+![CI](https://github.com/okalangkenneth/FinanceApp/actions/workflows/ci.yml/badge.svg)
+
 ## Table of Contents:
 1. [Introduction](#introduction)
 2. [Demonstration](#live-demo)

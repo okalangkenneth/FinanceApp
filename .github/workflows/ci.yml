@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  # ── Job 1: compile and test ─────────────────────────────────────────────────
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore FinanceApp.sln
+
+      - name: Build
+        run: dotnet build FinanceApp.sln --no-restore --configuration Release
+
+      - name: Test
+        run: >
+          dotnet test FinanceApp.sln
+          --no-build
+          --configuration Release
+          --logger "trx;LogFileName=results.trx"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
+
+  # ── Job 2: build the Docker image and verify it starts healthy ───────────────
+  # This job proves the Dockerfile is always valid and that the full compose
+  # stack (app + postgres) reaches /health/ready with no real API keys.
+  docker-smoke-test:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # No real API keys are needed for the smoke test.
+      # Anthropic and SendGrid calls are lazy (only on feature use), so the app
+      # starts and /health/ready passes with dummy / empty values.
+      - name: Create CI .env
+        run: |
+          printf '%s\n' \
+            'ANTHROPIC_API_KEY=dummy-ci-key' \
+            'SENDGRID_API_KEY=' \
+            'SENDGRID_SENDER_EMAIL=' \
+            'SEED_DEMO_PASSWORD=CiDemo1!' \
+            > .env
+
+      # --wait blocks until every service that declares a healthcheck is healthy.
+      # The postgres service has a pg_isready healthcheck; the app service does
+      # not, so --wait returns once postgres is ready. The curl step below then
+      # polls /health/ready (which includes the Npgsql DB check) until the app
+      # has finished applying migrations and is serving HTTP.
+      - name: Start stack
+        run: docker compose up -d --wait
+
+      # Retry up to 10 times (50 s total) to give the app time to apply EF
+      # migrations and complete startup before declaring the probe healthy.
+      - name: Wait for /health/ready
+        run: >
+          curl --fail
+          --retry 10
+          --retry-delay 5
+          --retry-connrefused
+          http://localhost:8888/health/ready
+
+      # Always capture logs — essential for diagnosing failures in CI.
+      - name: Dump app logs
+        if: always()
+        run: docker compose logs app
+
+      - name: Tear down
+        if: always()
+        run: docker compose down --volumes
+
+  # ── Kubernetes deploy: intentionally omitted ─────────────────────────────────
+  # The k8s manifests (k8s/) target a local Docker Desktop cluster and a local
+  # image registry (localhost:5555). There is no cloud deployment in this
+  # portfolio project — Phase 6 is a recorded demo, not a live environment.
+  #
+  # A production cloud pipeline would add a deploy job here using:
+  #   - OIDC federation (no long-lived secrets) to authenticate with the cloud
+  #   - Push image to ACR / GHCR / ECR
+  #   - kubectl apply or helm upgrade against an AKS / EKS cluster
+  # This is noted as future scope, not a gap in the current pipeline.
