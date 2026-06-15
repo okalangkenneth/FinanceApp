@@ -60,7 +60,7 @@ namespace FinanceApp.Controllers
                         .ToList();
             var model = new DashboardViewModel
             {
-                Transactions = transactions,
+                Transactions = transactions.OrderByDescending(t => t.Date).Take(5).ToList(),
                 FinancialGoals = financialGoals,
                 SpendingAnalysis = spendingAnalysis
             };
