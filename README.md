@@ -1,94 +1,107 @@
+# FinTrak — Personal Finance Manager
 
-# FinanceAI: A Smart Personal Finance Manager Leveraging .NET Core, OpenAI, and GitHub Actions
+[![CI](https://github.com/okalangkenneth/FinanceApp/actions/workflows/ci.yml/badge.svg)](https://github.com/okalangkenneth/FinanceApp/actions/workflows/ci.yml)
+[![.NET](https://img.shields.io/badge/.NET-8.0-purple)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-![CI](https://github.com/okalangkenneth/FinanceApp/actions/workflows/ci.yml/badge.svg)
+I inherited a three-year-old .NET 5 finance application with an anonymous data-export endpoint that served every user's transaction history to any unauthenticated visitor. There was also a dead OpenAI integration that hadn't worked since the API changed, a DinkToPdf dependency that crashed at runtime because the required binaries were never included, and two IDOR vulnerabilities that let any logged-in user delete or modify other users' records. I patched the security issues first, then upgraded the stack to .NET 8, replaced the broken OpenAI calls with the Anthropic Claude API, containerised the whole thing with Docker and Kubernetes, and rewired the CI pipeline. The Economics background isn't accidental — personal finance is a domain I understand from first principles, and the spending analysis feature reflects that.
 
-## Table of Contents:
-1. [Introduction](#introduction)
-2. [Demonstration](#live-demo)
-3. [Features](#features)
-4. [Technical Details](#technical-details)
-5. [Challenges and Solutions](#challenges-and-solutions)
-6. [Conclusion](#conclusion)
+---
 
+## Demo
 
+> **Demo video coming soon** — Kenneth will update this after recording.
 
-## **Introduction**
+<!-- screenshot: docs/screenshots/dashboard.png -->
 
-FinanceAI is a cutting-edge, user-centric web application designed to revolutionize personal finance management. Developed with .NET Core, this application harnesses the power of OpenAI to provide users with a comprehensive suite of tools for tracking income, expenses, and financial goals, offering a clear and insightful view of their financial health.
+![Transactions](docs/transactions.png)
 
-FinanceAI stands out with its unique integration of OpenAI services. This advanced technology is used to analyze spending habits and generate personalized recommendations, providing users with valuable insights and helping them make informed financial decisions.
+<!-- screenshot: docs/screenshots/ai-analysis.png -->
+<!-- screenshot: docs/screenshots/goals.png -->
 
-In addition, FinanceAI leverages GitHub Actions for continuous integration and deployment, ensuring the application is always in a releasable state and facilitating automatic deployment to Heroku.
+---
 
-## **Run locally**
+## What was fixed
+
+The rehabilitation took the app through seven phases. The security fixes came before any upgrade work — shipping a .NET 8 version of an app that leaks all users' data is not an improvement.
+
+| Before | After |
+|--------|-------|
+| Anonymous export — all users' transactions to any visitor | `[Authorize]` + per-user filtering on every query |
+| IDOR on edit/delete — any user could modify any record | Ownership checks on all write paths |
+| .NET 5 (EOL May 2022) | .NET 8 LTS |
+| Dead OpenAI completions API (endpoint removed by OpenAI) | Anthropic Claude API (`claude-haiku-4-5`) |
+| SQL Server dev / PostgreSQL prod split (migrations broken) | PostgreSQL everywhere — one data layer |
+| DinkToPdf (archived, wkhtmltox binaries missing — crashes at runtime) | QuestPDF (Community licence) |
+| EPPlus 5.7.5 (Polyform Noncommercial licence) | ClosedXML (MIT) |
+| Heroku deploy (free tier removed November 2022) | Docker + Kubernetes + GitHub Actions CI |
+| `ApplicationUser.EmailConfirmed` shadowing `IdentityUser.EmailConfirmed` | Duplicate property removed |
+| Reports classifying by Category instead of TransactionType | Fixed — dashboard and reports now agree |
+| Missing `[ValidateAntiForgeryToken]` on goal update | Added |
+| User enumeration on login ("User not found.") | Generic error message + lockout enabled |
+| Logout over GET (CSRF) | POST logout |
+
+---
+
+## Features
+
+- **Dashboard** — income / expense / net summary, monthly spending chart, goal progress cards
+- **Transaction management** — record and categorise income and expenses across standard categories
+- **Financial goals** — set savings targets, track progress with a visual bar
+- **AI spending analysis** — Anthropic Claude analyses your spending patterns and surfaces recommendations
+- **PDF export** — download a formatted transaction report via QuestPDF
+- **Excel export** — download transactions as an `.xlsx` file via ClosedXML
+- **Email confirmation** — registration flow uses SendGrid; app runs without it if no key is configured
+- **Multi-currency** — SEK default with support for additional currencies
+- **Reports** — income vs expense breakdown by category
+
+---
+
+## Tech stack
+
+**.NET 8** · **ASP.NET Core MVC** · **EF Core 8** · **PostgreSQL 16** · **ASP.NET Core Identity 8**  
+**Anthropic Claude API** · **Markdig** · **QuestPDF** · **ClosedXML** · **Serilog** · **SendGrid**  
+**Docker** · **docker-compose** · **Kubernetes** (manifests in `k8s/`) · **GitHub Actions CI**
+
+---
+
+## Run locally
 
 Requires Docker.
 
 ```bash
-cp .env.example .env    # optionally add your API keys; the app runs without them
+cp .env.example .env    # optionally add your Anthropic API key; the app runs without it
 docker compose up
 ```
 
-The app starts at http://localhost:8888 with PostgreSQL alongside it; the database schema is migrated automatically on first start.
+The app starts at **http://localhost:8888** with PostgreSQL alongside it. The database schema is migrated automatically on first start.
 
-## **Demonstration**
-I am excited to offer a live demo of my application for those interested in getting a firsthand look! This demo, hosted on Heroku, showcases the registration and login processes.
+To seed a demo user with sample transactions and goals:
 
-Please Note:
-Database Interaction: The demo gives you an insight into the registration and login flows, but actual user accounts will not be created. This is designed to protect our database and ensure the demo remains smooth for everyone.
+```bash
+# Add to your .env:
+SEED_DEMO_DATA=true
+SEED_DEMO_PASSWORD=YourChosenPassword1!
+```
 
-OpenAI API Calls: Our application leverages OpenAI, and each API call has associated costs. The demo is intentionally limited to avoid incurring these expenses.
-If you're interested in a more detailed walkthrough, showcasing all features of our application, please reach out to me directly. I'd be happy to provide a more in-depth demonstration upon request.
+Then log in as `demo@fintrak.example` with the password you set.
 
-Experience the live demo [here](https://fin-trak.herokuapp.com/).
+---
 
+## Security notes
 
+The three critical findings from the initial audit — and what was done about them:
 
-## **Features**
+**Anonymous data export.** `ExportController` had no `[Authorize]` attribute and no per-user filter, meaning any unauthenticated HTTP request to `/Export` returned a CSV of every transaction in the database. Fixed by adding `[Authorize]` and filtering all queries to the authenticated user's ID.
 
-1. **User Authentication**: The application provides secure user authentication using ASP.NET Core's Identity Framework. Users can register, log in, and manage their accounts.
-2. **Dashboard**: The dashboard provides a comprehensive overview of the user's financial status. It displays total income, expenses, and net worth. The net worth is visualized in a dynamic chart that updates in real-time using SignalR.
-3. **Transaction Management**: Users can record and categorize their income and expenses. The application supports various transaction categories, including food, utilities, rent, transportation, health, entertainment, education, savings, and others.
-4. **Financial Goals**: Users can set, update, and track their financial goals. Each goal includes a title, description, target amount, current amount, start date, end date, and status.
-5. **Spending Analysis**: The application uses OpenAI services to analyze spending habits and generate personalized recommendations. This feature provides valuable insights into the user's spending patterns and offers suggestions for improvement.
-6. **Email Notifications**: The application uses SendGrid to send email notifications for account-related activities, such as email confirmation.
-7. **Data Export**: Users can export their financial data for further analysis or backup.
-8. **Currency Support**: The application supports multiple currencies, allowing users to record transactions in their preferred currency.
-9. **Responsive Design**: The application uses Bootstrap for a responsive design that works well on both desktop and mobile devices.
-10. **Reports**: Users can generate detailed financial reports, providing a comprehensive view of their financial status and history. The reports include a list of transactions and a monthly budget view.
-11. **Continuous Integration and Deployment**: The application uses GitHub Actions for continuous integration and deployment. This ensures that the application is always in a releasable state and facilitates automatic deployment to Heroku.
+**IDOR on transactions and goals.** The edit and delete endpoints in `TransactionsController` and `FinancialGoalsController` accepted a record ID without checking ownership. A logged-in user could modify or delete any other user's data by guessing an integer ID. Fixed by verifying `UserId == currentUserId` before every write operation.
 
-## **Technical Details**
+**Privilege escalation via edit POST.** The transaction edit POST reassigned `UserId` from the form body, meaning a malicious request could silently transfer a record to a different user. Fixed by ignoring the posted `UserId` and always writing the authenticated user's ID.
 
-The FinanceAI is a comprehensive personal finance management web application built with the following technologies:
+Security came first. The .NET version upgrade and feature work followed once the data was safe.
 
-1. **ASP.NET Core MVC**: The application is built on the ASP.NET Core MVC framework, which is a model-view-controller framework for building dynamic web sites with clean separation of concerns.
-2. **Entity Framework Core**: This is used as the Object-Relational Mapping (ORM) framework to interact with the database.
-3. **SQL Server/Npgsql**: The application uses SQL Server for development and Npgsql (PostgreSQL) for production as the database.
-4. **Identity Framework**: This is used for user management and authentication.
-5. **SendGrid**: This is used for sending emails, such as email confirmation messages.
-6. **OpenAI Services**: The application uses OpenAI services to analyze spending habits and generate recommendations. This is done in the OpenAIService class, which sends requests to the OpenAI API and processes the responses.
-7. **SignalR**: This is used for real-time web functionality in the application. It enables real-time updates of the Net Worth chart on the dashboard.
+---
 
-8.8. **Chart.js**: This is used for creating charts in the application, such as the Net Worth chart on the dashboard.
+## Licence
 
-1. **Bootstrap**: This is used for designing and customizing the user interface of the application.
-2. **jQuery**: This is used for handling events, creating animations, and simplifying HTTP requests.
-3. **GitHub Actions**: The application uses GitHub Actions for continuous integration and deployment. The workflow is set up to automatically deploy the application to Heroku whenever changes are pushed to the master branch.
-
-The application follows the MVC architectural pattern, with separate models, views, and controllers for different parts of the application. The models define the data structures, the views define how the data is presented to the user, and the controllers handle user input and interactions.
-
-The application also follows good security practices, such as hashing and salting passwords, validating user input, and protecting against cross-site scripting (XSS) and cross-site request forgery (CSRF) attacks.
-
-## **Challenges and Solutions**
-
-One of the main challenges in developing FinanceAI was ensuring efficient data retrieval and processing, especially for the dashboard which displays a summary of the user's financial data. This was addressed by optimizing database queries and performing calculations directly in the database query itself, reducing the amount of data retrieved and the time taken to perform these calculations.
-
-Another challenge was setting up a CI/CD pipeline for the application. This was solved by using GitHub Actions, which allowed us to automate the build, test, and deployment processes. The application is now automatically deployed to Heroku whenever changes are pushed to the master branch, ensuring that the latest version of the application is always available to users.
-
-## **Conclusion**
-
-FinanceAI is a comprehensive tool for personal finance management, offering a wide range of features to help users track and manage their finances. With its user-friendly interface, robust backend, and intelligent features powered by OpenAI, it provides a reliable and efficient solution for personal finance management. The application's use of GitHub Actions for continuous integration and deployment ensures that it is always in a releasable state and that users always have access to the latest features and improvements.
-
-##
+MIT
