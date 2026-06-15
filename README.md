@@ -1,4 +1,4 @@
-# FinTrak: Personal Finance Manager
+# FinTrak: From Vulnerable .NET 5 App to AI-Powered Finance Manager on Kubernetes
 
 [![CI](https://github.com/okalangkenneth/FinanceApp/actions/workflows/ci.yml/badge.svg)](https://github.com/okalangkenneth/FinanceApp/actions/workflows/ci.yml)
 [![.NET](https://img.shields.io/badge/.NET-8.0-purple)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
