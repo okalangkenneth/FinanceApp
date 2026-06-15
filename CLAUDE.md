@@ -271,11 +271,36 @@ ABSENT from the tree — PDF export crashes at runtime, not just unmaintained).
   pod recovered automatically when StatefulSet recreated postgres-0.
   Phase 7 items noted: broken landing page images + © 2023 footer need fixing.
 
+- **Phase 5: CI/CD rewrite** — see `.github/workflows/ci.yml`: build + test +
+  docker smoke-test jobs; Heroku deploy removed; Node.js 24 forced for runners.
+
+- **Phase 6: Demo** — docker-compose one-command spin-up (:8888); recorded demo
+  (video URL TBD — Kenneth records after Phase 7); Phase 6 UI polish: export
+  page, dashboard goal cards with progress bars, graceful AI degradation;
+  dashboard recent transactions limited to 5 for above-fold screenshot.
+
+- **Phase 7: README rewrite + final polish (2026-06-15)** — three commits:
+  (a) Markdig 1.3.0 added; `Analyze.cshtml` and `Recommendations.cshtml`
+  switched from raw `<pre>` to `Markdig.Markdown.ToHtml()` + `@Html.Raw()` +
+  `.ai-response` CSS scoping — AI output now renders bold/headings/bullets
+  properly; (b) README rewritten — rehabilitation story lead, Before/After
+  table, honest feature list (no SignalR, no Heroku, no OpenAI, no SQL Server),
+  `docs/transactions.png` inline, placeholder comments for missing screenshots;
+  (c) k8s image updated to `phase7`, CLAUDE.md updated.
+  65/65 tests pass. Stack at :8889 Healthy.
+  Demo video: placeholder ("Demo video coming soon") — Kenneth to update after
+  recording.
+  Deferred: LinkedIn post (docs/LINKEDIN-POST-DRAFT.md exists), screenshot
+  collection (only docs/transactions.png exists — need dashboard, AI, goals
+  screenshots).
+
 ### 🔨 IN PROGRESS
-- Nothing — Phase 5 (CI/CD rewrite) is next
+- Nothing — all phases complete
 
 ### ❌ REMAINING
-- Phases 5–7 per pipeline above
+- Demo video recording + YouTube URL → update README
+- Screenshots for README (dashboard, AI analysis, goals)
+- LinkedIn post (draft in docs/LINKEDIN-POST-DRAFT.md)
 
 ## Correction Log
 When corrected, append to `docs/claude-corrections.md` (Mistake / Correction /
