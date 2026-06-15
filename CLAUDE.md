@@ -251,11 +251,30 @@ ABSENT from the tree — PDF export crashes at runtime, not just unmaintained).
   with 3A/3B committed but unpushed — hence the new push-every-sub-phase rule
   under Git Conventions.
 
+- **Phase 4: Kubernetes manifests (2026-06-15)** — six manifests in `k8s/`:
+  namespace, configmap, postgres StatefulSet (headless Service + 2Gi PVC),
+  secret example (imperative create only — no real values committed), migration
+  Job (init container pg_isready loop + MIGRATIONS_ONLY=true app image),
+  app Deployment + LoadBalancer Service 8889:8080. Full details in
+  docs/PHASE4-NOTES.md. Key decisions: (a) liveness probe `/health/live`
+  has NO DB dependency (avoids restart cascades on DB blips); readiness probe
+  `/health/ready` includes Npgsql check — pod leaves Service endpoints but is
+  NOT restarted when DB is down; (b) migration Job reuses app image with env
+  flag (no separate efbundle stage); (c) DataProtection keys on 64Mi RWO PVC,
+  replica cap 1 (shared key storage is post-portfolio scope); (d) secrets
+  created imperatively, 03-secret.example.yaml documents the kubectl command.
+  Verified: migration Job Complete 1/1, app pod Running 1/1 (0 restarts),
+  /health/live + /health/ready both 200 Healthy at localhost:8889.
+  Resilience test: `kubectl delete pod postgres-0` → readiness probe fired
+  (503 + timeout events on app pod), liveness never fired (Restart Count: 0),
+  pod recovered automatically when StatefulSet recreated postgres-0.
+  Phase 7 items noted: broken landing page images + © 2023 footer need fixing.
+
 ### 🔨 IN PROGRESS
-- Nothing — Phase 4 (Kubernetes manifests) is next
+- Nothing — Phase 5 (CI/CD rewrite) is next
 
 ### ❌ REMAINING
-- Phases 4–7 per pipeline above
+- Phases 5–7 per pipeline above
 
 ## Correction Log
 When corrected, append to `docs/claude-corrections.md` (Mistake / Correction /

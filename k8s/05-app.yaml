@@ -1,0 +1,121 @@
+---
+# DataProtection PVC — keys persist across pod recreations so auth cookies
+# and antiforgery tokens survive deployments.
+# REPLICA LIMIT: this Deployment is capped at 1 replica because DataProtection
+# keys are stored on a local RWO PVC. Multiple replicas would share no key
+# material, causing each pod to issue different tokens → auth failures.
+# Fix = shared key storage (Azure Blob / Redis / k8s Secret-backed provider),
+# which is out of scope for this portfolio phase.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dpkeys-pvc
+  namespace: financeapp
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 64Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: financeapp
+  namespace: financeapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: financeapp
+  template:
+    metadata:
+      labels:
+        app: financeapp
+    spec:
+      containers:
+        - name: financeapp
+          image: localhost:5555/financeapp:p4
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: financeapp-config
+          env:
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: financeapp-secrets
+                  key: ConnectionStrings__DefaultConnection
+            - name: Anthropic__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: financeapp-secrets
+                  key: Anthropic__ApiKey
+            - name: SendGrid__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: financeapp-secrets
+                  key: SendGrid__ApiKey
+            - name: SendGrid__SenderEmail
+              valueFrom:
+                secretKeyRef:
+                  name: financeapp-secrets
+                  key: SendGrid__SenderEmail
+            - name: SeedDemo__Password
+              valueFrom:
+                secretKeyRef:
+                  name: financeapp-secrets
+                  key: SeedDemo__Password
+          volumeMounts:
+            - name: dpkeys
+              mountPath: /home/app/.aspnet/DataProtection-Keys
+          # Liveness: no DB dependency — only checks the process responds.
+          # A DB-dependent liveness probe causes restart cascades: when the DB
+          # blips, Kubernetes kills and restarts the app pod, which also can't
+          # reach the DB, creating a tight restart loop. Liveness = "is the
+          # process stuck?", not "are all dependencies reachable?"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 45
+            periodSeconds: 20
+            failureThreshold: 3
+          # Readiness: includes the Npgsql DB check (tagged "ready" in Program.cs).
+          # When the DB is unreachable the pod is removed from Service endpoints
+          # (traffic stops) but the pod is NOT restarted — it recovers when the
+          # DB returns.
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: dpkeys
+          persistentVolumeClaim:
+            claimName: dpkeys-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: financeapp
+  namespace: financeapp
+spec:
+  # Docker Desktop maps LoadBalancer services to localhost automatically.
+  # Port 8889 coexists with the compose stack on 8888.
+  type: LoadBalancer
+  selector:
+    app: financeapp
+  ports:
+    - port: 8889
+      targetPort: 8080

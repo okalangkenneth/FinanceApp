@@ -1,0 +1,58 @@
+# Migration Job — runs BEFORE the app Deployment is applied.
+# Uses the same image as the app (localhost:5555/financeapp:p4) with
+# MIGRATIONS_ONLY=true so the process applies EF migrations and exits 0.
+# This fulfils the Phase 2 promise: "production runs migrations as a dedicated
+# job, never in-process at web-server startup."
+#
+# Apply order:
+#   kubectl apply -f k8s/00-namespace.yaml
+#   kubectl apply -f k8s/01-configmap.yaml
+#   kubectl apply -f k8s/02-postgres.yaml
+#   # create secret imperatively (see 03-secret.example.yaml)
+#   kubectl apply -f k8s/04-migration-job.yaml
+#   kubectl wait --for=condition=complete job/financeapp-migrate -n financeapp --timeout=120s
+#   kubectl apply -f k8s/05-app.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: financeapp-migrate
+  namespace: financeapp
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        # Wait for postgres to accept connections before attempting migrations.
+        # Without this, the Job races the StatefulSet and times out if postgres
+        # isn't ready yet (a pg_isready loop is cheaper than a backoff retry).
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - until pg_isready -h postgres -p 5432 -U $(POSTGRES_USER); do echo "waiting for postgres"; sleep 3; done
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: financeapp-secrets
+                  key: POSTGRES_USER
+      containers:
+        - name: migrate
+          image: localhost:5555/financeapp:p4
+          env:
+            - name: MIGRATIONS_ONLY
+              value: "true"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: financeapp-secrets
+                  key: ConnectionStrings__DefaultConnection
+          resources:
+            requests:
+              memory: 128Mi
+            limits:
+              memory: 256Mi

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: financeapp-config
+  namespace: financeapp
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  # k8s uses the migration Job (02-postgres + 04-migration-job); the app pods
+  # never run migrations themselves.
+  RUN_MIGRATIONS: "false"
+  # Demo data is seeded on first deploy so the Phase 6 recorded demo can log
+  # in immediately. Seeding is idempotent (skips if the user already exists).
+  SEED_DEMO_DATA: "true"
+  Logging__LogLevel__Default: "Information"
+  Logging__LogLevel__Microsoft.AspNetCore: "Warning"
+  Logging__LogLevel__Microsoft.EntityFrameworkCore: "Warning"

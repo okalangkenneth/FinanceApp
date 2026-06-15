@@ -122,24 +122,50 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
-// Liveness + database reachability for compose/Kubernetes probes
+// Two separate health check groups for Kubernetes probe split:
+//   /health/live  — liveness: no external dependencies. A liveness probe that
+//                   calls the DB causes cascading pod restarts when the DB blips
+//                   (Kubernetes interprets DB-down as app-broken → kills and
+//                   restarts the pod, which also can't reach the DB → tight loop).
+//                   Liveness should only answer: "is the process itself stuck?"
+//   /health/ready — readiness: includes the Npgsql DB check. When the DB is
+//                   unreachable the pod is removed from Service endpoints but
+//                   not restarted; it recovers automatically when the DB returns.
 builder.Services.AddHealthChecks()
-    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    .AddNpgSql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        tags: ["ready"]);
 
 var app = builder.Build();
 
-// Dev-stack convenience: docker-compose sets RUN_MIGRATIONS=true so the schema
-// is created/updated on startup. Production runs migrations as a dedicated
-// job before rollout (wired in Phases 4/5), never in-process.
-if (string.Equals(Environment.GetEnvironmentVariable("RUN_MIGRATIONS"), "true", StringComparison.OrdinalIgnoreCase))
+// MIGRATIONS_ONLY=true: run migrations then exit — used by the Kubernetes
+// migration Job so the same image serves both roles without a separate efbundle
+// build stage. The Job completes with exit code 0 and the Deployment is applied
+// afterwards; app pods set RUN_MIGRATIONS=false and never migrate themselves.
+// (Tradeoff vs efbundle: efbundle is a purpose-built binary with no web-server
+// overhead, but requires an extra Dockerfile stage. The app-image flag reuses
+// the same published artifact and keeps the build pipeline simple — the right
+// call for a portfolio demo cluster where migrations run infrequently.)
+bool migrationsOnly = string.Equals(
+    Environment.GetEnvironmentVariable("MIGRATIONS_ONLY"), "true",
+    StringComparison.OrdinalIgnoreCase);
+
+if (migrationsOnly ||
+    string.Equals(Environment.GetEnvironmentVariable("RUN_MIGRATIONS"), "true", StringComparison.OrdinalIgnoreCase))
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var pending = db.Database.GetPendingMigrations().ToList();
-    app.Logger.LogInformation("[Program] RUN_MIGRATIONS=true, applying {Count} pending migration(s): {Migrations}",
+    app.Logger.LogInformation("[Program] Applying {Count} pending migration(s): {Migrations}",
         pending.Count, string.Join(", ", pending));
     db.Database.Migrate();
     app.Logger.LogInformation("[Program] Migrations applied");
+
+    if (migrationsOnly)
+    {
+        app.Logger.LogInformation("[Program] MIGRATIONS_ONLY=true — exiting");
+        return;
+    }
 }
 
 // Demo data for the dev stack and the Phase 6 recorded demo (audit item 17):
@@ -186,6 +212,16 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-app.MapHealthChecks("/health");
+
+// /health/live: no-dependency liveness (only checks the process is alive)
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => false   // no checks = always Healthy if the process responds
+});
+// /health/ready: DB-dependent readiness (tagged "ready" above)
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 
 app.Run();
