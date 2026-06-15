@@ -8,20 +8,28 @@
         <p class="lead">Take control of your finances and achieve your financial goals with our AI-powered personal finance app.</p>
         <hr class="my-4">
         <p>Sign up or log in to start managing your finances today.</p>
-        <a class="btn btn-primary btn-lg" href="/Identity/Account/Register"
+        <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Register"
            role="button">Sign Up</a>
-        <a class="btn btn-secondary btn-lg ml-2" href="/Identity/Account/Login" role="button">Log In</a>
+        <a class="btn btn-secondary btn-lg ml-2" asp-controller="Account" asp-action="Login" role="button">Log In</a>
     </div>
-    <!-- Add a row with images related to personal finance -->
-    <div class="row mt-5">
+    <div class="row mt-5 text-center">
         <div class="col-md-4">
-            <img src="https://source.unsplash.com/random/600x400?finance,save" alt="Personal finance image" class="img-fluid rounded">
+            <div class="p-4 rounded" style="background:#1e3a5f;color:#fff;">
+                <h4>&#x1F4B0; Track Spending</h4>
+                <p class="mb-0">Categorise every transaction and see where your money goes each month.</p>
+            </div>
         </div>
         <div class="col-md-4">
-            <img src="https://source.unsplash.com/random/600x400?budget,invest" alt="Budgeting image" class="img-fluid rounded">
+            <div class="p-4 rounded" style="background:#14532d;color:#fff;">
+                <h4>&#x1F3AF; Set Goals</h4>
+                <p class="mb-0">Define savings targets and watch your progress in real time.</p>
+            </div>
         </div>
         <div class="col-md-4">
-            <img src="https://source.unsplash.com/random/600x400?money,goals" alt="Financial goals image" class="img-fluid rounded">
+            <div class="p-4 rounded" style="background:#4a1d96;color:#fff;">
+                <h4>&#x1F916; AI Insights</h4>
+                <p class="mb-0">Get personalised spending analysis powered by Claude AI.</p>
+            </div>
         </div>
     </div>
 </div>
