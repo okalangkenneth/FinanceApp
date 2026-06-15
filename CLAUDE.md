@@ -270,11 +270,29 @@ ABSENT from the tree — PDF export crashes at runtime, not just unmaintained).
   pod recovered automatically when StatefulSet recreated postgres-0.
   Phase 7 items noted: broken landing page images + © 2023 footer need fixing.
 
+- **Phase 5: CI/CD rewrite (2026-06-15)** — `.github/workflows/ci.yml`:
+  two jobs on push-to-master and PR-to-master. `build-and-test`: checkout@v4,
+  setup-dotnet@v4 (8.0.x), restore → build Release → test Release with TRX
+  logger, upload-artifact (test-results). `docker-smoke-test`: needs
+  build-and-test, creates CI .env from printf (ANTHROPIC_API_KEY=dummy-ci-key,
+  SENDGRID empty, SEED_DEMO_PASSWORD=CiDemo1! — no real secrets needed),
+  `docker compose up -d --wait`, `curl --fail --retry 12 --retry-delay 5
+  --retry-all-errors http://localhost:8888/health/ready`, logs, `down --volumes`.
+  k8s deploy intentionally omitted with comment (local registry + cluster;
+  future scope = OIDC + ACR/AKS). CI badge added to README.md top.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true added (Node.js 24 forced 2026-06-16).
+  Debug finding: `--retry-connrefused` is insufficient — Docker's port forwarding
+  sends TCP RST (ECONNRESET, curl exit 56) when the container is running but
+  the app hasn't bound to port 8080 yet; ECONNRESET is not retried by
+  --retry-connrefused (only ECONNREFUSED/exit 7). Fixed with --retry-all-errors.
+  Verified: run 27531109877 on master — both jobs green.
+  Run URL: https://github.com/okalangkenneth/FinanceApp/actions/runs/27531109877
+
 ### 🔨 IN PROGRESS
-- Nothing — Phase 5 (CI/CD rewrite) is next
+- Nothing — Phase 6 (recorded demo) is next
 
 ### ❌ REMAINING
-- Phases 5–7 per pipeline above
+- Phases 6–7 per pipeline above
 
 ## Correction Log
 When corrected, append to `docs/claude-corrections.md` (Mistake / Correction /
