@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
         - name: financeapp
-          image: localhost:5555/financeapp:p4
+          image: localhost:5555/financeapp:p6fix
           ports:
             - containerPort: 8080
           envFrom:
