@@ -1,9 +1,9 @@
-# LinkedIn Post Draft — FinTrak Rehabilitation
-
-## Option A: Lead with the security find (recommended)
-~1,200 characters
+# LinkedIn Post — FinTrak Rehabilitation
+# READY TO POST — Option A selected, YouTube URL inserted
 
 ---
+
+## POST BODY (copy this exactly)
 
 I inherited a 3-year-old .NET finance app with a bug I still can't believe
 made it to production: an unauthenticated export endpoint that returned
@@ -43,59 +43,27 @@ Repo + demo in comments ↓
 
 ---
 
-## Option B: Lead with the methodology (alternative angle)
-~1,100 characters
+## FIRST COMMENT (post immediately after, as first comment)
+
+🎥 Demo: https://youtu.be/MA0fJQzMLPc
+💻 GitHub: https://github.com/okalangkenneth/FinanceApp
 
 ---
 
-Most abandoned codebases don't get rehabilitated. They get rewritten or
-quietly forgotten.
-
-I've been building a structured methodology for taking inherited .NET
-projects from technical debt to production quality — and I used it on a
-3-year-old personal finance app this week.
-
-Phase 0: Discovery audit. 49 debt items, three of them critical security
-vulnerabilities. The worst: an anonymous endpoint serving every user's
-financial history to any unauthenticated visitor.
-
-Phase 1A: Security first, always. Critical vulnerabilities patched before
-any framework upgrade work. This is non-negotiable.
-
-Then: .NET 5 → .NET 8. Dead OpenAI integration → Anthropic Claude API.
-SQL Server/PostgreSQL split → PostgreSQL everywhere. DinkToPdf (archived,
-broken at runtime) → QuestPDF. Heroku (dead 2022) → Docker + Kubernetes.
-
-The final stack: .NET 8 · ASP.NET Core MVC · PostgreSQL 16 · EF Core 8 ·
-Anthropic Claude · QuestPDF · ClosedXML · Serilog · Docker · k8s ·
-GitHub Actions CI with Docker smoke test.
-
-64 tests. Zero app restarts during a database outage (split health probes).
-Green CI badge. One-command local setup.
-
-My Economics background isn't incidental — personal finance is a domain
-I understand from first principles, which made the AI spending analysis
-feel less like a feature and more like an obvious addition.
-
-Repo + demo in comments ↓
-
-#dotnet #csharp #kubernetes #anthropic #devops #portfolio #softwareengineering
+## POSTING CHECKLIST
+- [ ] Post on Tuesday or Wednesday morning Stockholm time (08:00–09:00 CET)
+- [ ] Attach docs/screenshots/dashboard.png as the post image
+- [ ] Post the body text above
+- [ ] Immediately add the first comment with the two links
+- [ ] Optional: tag @Anthropic in the body for potential reshare
+- [ ] Optional: add "Based in Stockholm" before the hashtags for local reach
 
 ---
 
-## Comment (post this as first comment on either version)
-GitHub: https://github.com/okalangkenneth/FinanceApp
-Demo: [YouTube URL]
-
----
-
-## Notes for final edit before posting
-- Insert the actual YouTube demo URL above
-- Pick Option A or B (A is more concrete and story-driven; B is better if
-  you want to emphasise the methodology for hiring managers who look for
-  process over output)
-- Add 1-2 sentences about Stockholm / backendinsight.com if posting
-  in a Swedish tech context
-- Post on a Tuesday or Wednesday morning (Stockholm time) for best reach
-- Tag Anthropic (@Anthropic) in the post body if you want distribution
-  from their side — they occasionally reshare Claude integrations
+## NOTES
+- YouTube URL confirmed: https://youtu.be/MA0fJQzMLPc
+- GitHub: https://github.com/okalangkenneth/FinanceApp
+- LinkedIn character limit is ~3,000; this post is ~1,200 — well within limit
+- The "zero app restarts during a database outage" line is the most unusual
+  technical detail — if engagement is low in first hour, that line alone
+  is worth a follow-up comment expanding on the probe split design

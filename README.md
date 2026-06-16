@@ -8,7 +8,9 @@ I inherited a three-year-old .NET 5 finance application with an anonymous data-e
 
 ## Demo
 
-> **Demo video coming soon** -- Kenneth will update this after recording.
+[![FinTrak Demo](https://img.youtube.com/vi/MA0fJQzMLPc/maxresdefault.jpg)](https://youtu.be/MA0fJQzMLPc)
+
+*Click to watch the full demo on YouTube*
 
 ![Landing page](docs/landing.png)
 
