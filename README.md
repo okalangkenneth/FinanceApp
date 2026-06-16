@@ -85,6 +85,8 @@ SEED_DEMO_PASSWORD=YourChosenPassword1!
 
 Then log in as `demo@fintrak.example` with the password you set.
 
+After a Kubernetes reset: `.\scripts\k8s-restore.ps1`
+
 ## Security notes
 
 Three critical findings from the initial audit and what was done about them:
